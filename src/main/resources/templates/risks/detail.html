@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${r.riskCode})}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('risks')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><div class="d-flex gap-2 align-items-center"><h1 th:text="${r.riskCode}">R</h1><span th:replace="~{fragments/layout :: badge(${r.riskLevel})}"></span><span th:replace="~{fragments/layout :: badge(${r.status})}"></span></div>
+    <p class="cs-subtitle" th:text="${r.title}">t</p></div>
+    <a th:if="${currentUser.securityOps}" class="btn btn-outline-secondary" th:href="@{/risks/{id}/edit(id=${r.id})}"><i class="bi bi-pencil me-1"></i>Edit assessment</a></div>
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card mb-3"><div class="card-body text-center">
+            <div class="cs-muted small">Risk score (likelihood &times; impact)</div>
+            <div class="display-4 fw-bold" th:text="${r.riskScore}">0</div>
+            <div th:text="|${r.likelihood} x ${r.impact} = ${r.riskScore}|" class="cs-muted">x</div></div></div>
+        <div class="card mb-3"><div class="card-header">Assessment</div><div class="card-body"><dl class="cs-dl mb-0">
+            <dt>Asset</dt><dd><a th:href="@{/assets/{id}(id=${r.assetId})}" th:text="|${r.assetCode} - ${r.assetName}|">a</a></dd>
+            <dt>Vulnerability instance</dt><dd th:if="${r.assetVulnerabilityId != null}"><a th:href="@{/asset-vulnerabilities/{id}(id=${r.assetVulnerabilityId})}" th:text="${r.vulnCode}">v</a> <span th:replace="~{fragments/layout :: badge(${r.vulnStatus})}"></span></dd>
+            <dd th:if="${r.assetVulnerabilityId == null}">Not linked to a specific vulnerability</dd>
+            <dt>Description</dt><dd th:text="${r.description ?: '-'}">d</dd>
+            <dt>Treatment strategy</dt><dd th:text="${r.treatmentStrategy.label}">s</dd>
+            <dt>Owner</dt><dd th:text="${r.ownerName ?: '-'}">o</dd>
+            <dt>Created</dt><dd th:text="|${#temporals.format(r.createdAt, 'dd MMM yyyy')} by ${r.createdByName}|">c</dd></dl></div></div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card mb-3"><div class="card-header">Treatment plan</div>
+            <div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(r.treatments)}">
+                <thead><tr><th>Strategy</th><th>Action</th><th>Owner</th><th>Deadline</th><th>Status</th><th th:if="${currentUser.securityOps}"></th></tr></thead>
+                <tbody><tr th:each="t : ${r.treatments}">
+                    <td class="small" th:text="${t.strategy.label}">s</td><td class="small" th:text="${t.actionDescription}">a</td>
+                    <td class="small" th:text="${t.ownerName ?: '-'}">o</td>
+                    <td class="small"><span th:text="${t.deadline != null ? #temporals.format(t.deadline, 'dd MMM yyyy') : '-'}">d</span> <span th:if="${t.overdue}" class="badge cs-badge cs-overdue">Overdue</span></td>
+                    <td><span th:replace="~{fragments/layout :: badge(${t.status})}"></span></td>
+                    <td th:if="${currentUser.securityOps}"><form th:if="${t.status.cssKey == 'planned' or t.status.cssKey == 'in-progress'}" class="d-flex gap-1"
+                            th:action="@{/risks/treatments/{id}/status(id=${t.id})}" method="post">
+                        <select class="form-select form-select-sm" name="status"><option th:each="s : ${treatmentStatuses}" th:value="${s}" th:text="${s.label}" th:selected="${s == t.status}"></option></select>
+                        <button class="btn btn-sm btn-outline-primary" type="submit">Set</button></form></td>
+                </tr></tbody></table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(r.treatments)}">No treatment actions yet.</div></div>
+            <form th:if="${currentUser.securityOps and r.status.cssKey != 'closed'}" class="row g-2 p-3 border-top" th:action="@{/risks/{id}/treatments(id=${r.id})}" th:object="${treatmentForm}" method="post">
+                <div class="col-md-3"><select class="form-select form-select-sm" th:field="*{strategy}" required><option value="">Strategy...</option>
+                    <option th:each="s : ${strategies}" th:value="${s}" th:text="${s.label}"></option></select></div>
+                <div class="col-md-5"><input class="form-control form-control-sm" th:field="*{actionDescription}" placeholder="Treatment action" required maxlength="4000"></div>
+                <div class="col-md-2"><input type="date" class="form-control form-control-sm" th:field="*{deadline}" title="Deadline"></div>
+                <div class="col-md-2"><select class="form-select form-select-sm" th:field="*{ownerId}"><option value="">Owner...</option>
+                    <option th:each="u : ${users}" th:value="${u.id}" th:text="${u.label}"></option></select></div>
+                <div class="col-12"><button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-plus"></i> Add treatment</button></div>
+            </form>
+        </div>
+        <div class="card"><div class="card-header">Risk history</div><div class="card-body"><ul class="cs-timeline" th:unless="${#lists.isEmpty(r.history)}">
+            <li th:each="h : ${r.history}"><div class="small" th:text="${h.description}">d</div>
+                <div class="cs-time" th:text="|${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')} - ${h.username ?: 'system'}|">t</div></li></ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(r.history)}">No changes recorded</div></div></div>
+    </div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

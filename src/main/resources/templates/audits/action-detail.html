@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(|Corrective action ${a.findingCode}|)}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('actions')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><div class="d-flex gap-2 align-items-center"><h1 th:text="|Corrective action - ${a.findingCode}|">CA</h1><span th:replace="~{fragments/layout :: badge(${a.status})}"></span>
+    <span th:if="${a.overdue}" class="badge cs-badge cs-overdue">Overdue</span></div>
+    <p class="cs-subtitle" th:text="${a.findingTitle}">t</p></div>
+    <a th:if="${currentUser.auditTeam}" class="btn btn-outline-secondary" th:href="@{/audits/findings/{id}(id=${a.findingId})}">Open finding</a></div>
+<div class="row g-3">
+    <div class="col-lg-5"><div class="card mb-3"><div class="card-header">Details</div><div class="card-body"><dl class="cs-dl mb-0">
+        <dt>Corrective action</dt><dd th:text="${a.description}" style="white-space:pre-line">d</dd>
+        <dt>Assigned to</dt><dd th:text="${a.assignedToName}">a</dd><dt>Deadline</dt><dd th:text="${a.deadline != null ? #temporals.format(a.deadline, 'dd MMM yyyy') : '-'}">d</dd>
+        <dt>Audit plan / auditor</dt><dd th:text="|${a.planCode} - ${a.auditorName}|">p</dd>
+        <dt>Created</dt><dd th:text="|${#temporals.format(a.createdAt, 'dd MMM yyyy')} by ${a.createdByName}|">c</dd></dl></div></div>
+        <div class="card mb-3" th:if="${a.canStart}"><div class="card-body d-flex justify-content-between align-items-center">
+            <span>Start working on this action?</span>
+            <form th:action="@{/audits/actions/{id}/start(id=${a.id})}" method="post"><button class="btn btn-primary" type="submit">Start</button></form></div></div>
+        <div class="card mb-3" th:if="${a.canUpload}"><div class="card-header"><i class="bi bi-upload me-2"></i>Submit audit evidence</div>
+            <form class="card-body" th:action="@{/audits/actions/{id}/evidence(id=${a.id},_csrf=${_csrf.token})}" method="post" enctype="multipart/form-data">
+                <input class="form-control mb-2" type="file" name="file" required data-max-size="10485760" accept=".pdf,.png,.jpg,.jpeg,.txt">
+                <input class="form-control mb-2" name="description" placeholder="Description (optional)" maxlength="2000">
+                <div class="small cs-muted mb-2">PDF, PNG, JPG/JPEG or TXT, max 10 MB. Uploading submits the evidence to the auditor.</div>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-send me-1"></i>Submit evidence</button></form></div>
+        <div class="card mb-3 border-warning" th:if="${a.canReview}"><div class="card-header bg-warning-subtle"><i class="bi bi-patch-check me-2"></i>Verify audit evidence</div>
+            <form class="card-body" th:action="@{/audits/actions/{id}/review(id=${a.id})}" method="post">
+                <div class="form-check"><input class="form-check-input" type="radio" name="decision" id="verify" value="VERIFIED" required>
+                    <label class="form-check-label text-success fw-semibold" for="verify">Verify</label></div>
+                <div class="form-check mb-2"><input class="form-check-input" type="radio" name="decision" id="rejectA" value="REJECTED">
+                    <label class="form-check-label text-danger fw-semibold" for="rejectA">Reject</label></div>
+                <textarea class="form-control mb-2" name="notes" rows="2" placeholder="Review notes (required when rejecting)" maxlength="2000"></textarea>
+                <button class="btn btn-primary" type="submit">Record decision</button></form></div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card mb-3"><div class="card-header">Audit evidence</div>
+            <div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(a.evidence)}">
+                <thead><tr><th>File</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+                <tbody><tr th:each="e : ${a.evidence}">
+                    <td><div class="small fw-semibold" th:text="${e.originalFilename}">f</div><div class="small cs-muted" th:text="${e.description ?: ''}">d</div></td>
+                    <td><span th:replace="~{fragments/layout :: badge(${e.status})}"></span></td>
+                    <td class="small"><span th:text="${e.submittedBy}">u</span><br><span class="cs-muted" th:text="${#temporals.format(e.submittedAt, 'dd MMM yyyy, HH:mm')}">t</span></td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/audits/actions/evidence/{eid}/download(eid=${e.id})}"><i class="bi bi-download"></i></a></td></tr></tbody></table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(a.evidence)}">No evidence submitted yet.</div></div></div>
+        <div class="card"><div class="card-header">Review history</div>
+            <div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(a.reviews)}">
+                <thead><tr><th>Decision</th><th>File</th><th>Reviewer</th><th>Notes</th><th>When</th></tr></thead>
+                <tbody><tr th:each="r : ${a.reviews}"><td><span th:replace="~{fragments/layout :: badge(${r.decision})}"></span></td><td class="small" th:text="${r.evidenceFilename}">f</td>
+                    <td class="small" th:text="${r.reviewer}">r</td><td class="small" th:text="${r.notes ?: '-'}">n</td>
+                    <td class="small" th:text="${#temporals.format(r.reviewedAt, 'dd MMM yyyy, HH:mm')}">t</td></tr></tbody></table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(a.reviews)}">No review decisions yet.</div></div></div>
+    </div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

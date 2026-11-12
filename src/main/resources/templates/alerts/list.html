@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Security Alerts')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('alerts')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Security Alerts</h1>
+    <p class="cs-subtitle">Alerts are stored in MySQL (demonstration data and manually recorded alerts). No live SIEM is connected.</p></div>
+    <a class="btn btn-primary" th:href="@{/alerts/new}"><i class="bi bi-plus-lg me-1"></i>Record alert</a></div>
+<form class="cs-filter-bar row g-2 align-items-end" th:action="@{/alerts}" method="get">
+    <div class="col-md-3"><label class="form-label small">Search</label><input class="form-control" name="q" th:value="${q}" placeholder="Code or title"></div>
+    <div class="col-md-2"><label class="form-label small">Status</label><select class="form-select" name="status"><option value="">All</option>
+        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${s == status}"></option></select></div>
+    <div class="col-md-2"><label class="form-label small">Severity</label><select class="form-select" name="severity"><option value="">All</option>
+        <option th:each="s : ${severities}" th:value="${s}" th:text="${s.label}" th:selected="${s == severity}"></option></select></div>
+    <div class="col-md-2"><label class="form-label small">Source</label><select class="form-select" name="source"><option value="">All</option>
+        <option th:each="s : ${sources}" th:value="${s}" th:text="${s.label}" th:selected="${s == source}"></option></select></div>
+    <div class="col-md-1"><div class="form-check mt-4"><input class="form-check-input" type="checkbox" id="mine" name="mine" value="true" th:checked="${mine}">
+        <label class="form-check-label small" for="mine">Mine</label></div></div>
+    <div class="col-md-2 d-flex gap-2"><button class="btn btn-primary flex-fill" type="submit"><i class="bi bi-funnel"></i></button>
+        <a class="btn btn-outline-secondary" th:href="@{/alerts}"><i class="bi bi-x-lg"></i></a></div>
+</form>
+<div class="card"><div class="table-responsive">
+    <table class="table align-middle" th:unless="${page.empty}">
+        <thead><tr><th><a th:replace="~{fragments/layout :: sortable('alertCode', 'Alert')}"></a></th><th>Source</th><th><a th:replace="~{fragments/layout :: sortable('severity', 'Severity')}"></a></th><th>Asset</th>
+            <th><a th:replace="~{fragments/layout :: sortable('detectedAt', 'Detected')}"></a></th><th><a th:replace="~{fragments/layout :: sortable('status', 'Status')}"></a></th><th>Analyst</th><th></th></tr></thead>
+        <tbody><tr th:each="a : ${page.content}">
+            <td><a class="cs-code" th:href="@{/alerts/{id}(id=${a.id})}" th:text="${a.alertCode}">A</a><div class="small fw-semibold" th:text="${a.title}">t</div></td>
+            <td class="small" th:text="${a.source.label}">s</td><td><span th:replace="~{fragments/layout :: badge(${a.severity})}"></span></td>
+            <td class="cs-code small" th:text="${a.assetCode ?: '-'}">a</td>
+            <td class="small" th:text="${a.detectedAt != null ? #temporals.format(a.detectedAt, 'dd MMM yyyy, HH:mm') : '-'}">d</td><td><span th:replace="~{fragments/layout :: badge(${a.status})}"></span></td>
+            <td class="small" th:text="${a.analystName ?: 'Unassigned'}">n</td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/alerts/{id}(id=${a.id})}">View</a></td>
+        </tr></tbody>
+    </table>
+    <div class="cs-empty" th:if="${page.empty}"><i class="bi bi-bell-slash"></i>No alerts match your filters.</div>
+</div><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

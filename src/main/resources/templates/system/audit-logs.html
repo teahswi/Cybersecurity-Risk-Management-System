@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Audit Logs')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('auditlogs')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Audit Logs</h1><p class="cs-subtitle">Append-only record of application activity. Entries cannot be edited or deleted through CyberShield.</p></div></div>
+<form class="cs-filter-bar row g-2 align-items-end" th:action="@{/system/audit-logs}" method="get">
+    <div class="col-md-3"><label class="form-label small">Search</label><input class="form-control" name="q" th:value="${q}" placeholder="Description or username"></div>
+    <div class="col-md-2"><label class="form-label small">Action</label><select class="form-select" name="action"><option value="">All</option>
+        <option th:each="a : ${actions}" th:value="${a}" th:text="${a.label}" th:selected="${a == action}"></option></select></div>
+    <div class="col-md-2"><label class="form-label small">Module</label><select class="form-select" name="module"><option value="">All</option>
+        <option th:each="m : ${modules}" th:value="${m}" th:text="${m.label}" th:selected="${m == module}"></option></select></div>
+    <div class="col-md-2"><label class="form-label small">From</label><input class="form-control" type="date" name="from" th:value="${from}"></div>
+    <div class="col-md-2"><label class="form-label small">To</label><input class="form-control" type="date" name="to" th:value="${to}"></div>
+    <div class="col-md-1"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-funnel"></i></button></div>
+</form>
+<div class="card"><div class="table-responsive"><table class="table align-middle" th:unless="${page.empty}">
+    <thead><tr><th>When</th><th>User</th><th>Action</th><th>Module</th><th>Record</th><th>Description</th><th>IP</th></tr></thead>
+    <tbody><tr th:each="l : ${page.content}">
+        <td class="small text-nowrap" th:text="${#temporals.format(l.createdAt, 'dd MMM yyyy, HH:mm:ss')}">t</td>
+        <td class="small" th:text="${l.username ?: 'system'}">u</td>
+        <td><span class="badge cs-badge" th:classappend="${l.action.cssKey == 'login-failure'} ? 'cs-critical'" th:text="${l.action.label}">a</span></td>
+        <td class="small" th:text="${l.module.label}">m</td>
+        <td class="small"><a th:if="${l.link != null}" th:href="@{${l.link}}" th:text="|${l.recordType.label} #${l.recordId}|">r</a>
+            <span th:if="${l.link == null}" th:text="${l.recordType != null ? l.recordType.label : '-'}">-</span></td>
+        <td class="small" th:text="${l.description}">d</td><td class="small cs-code" th:text="${l.ipAddress ?: '-'}">ip</td></tr></tbody></table>
+    <div class="cs-empty" th:if="${page.empty}">No log entries match your filters.</div></div><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

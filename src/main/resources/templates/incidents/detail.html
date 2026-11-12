@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${i.incidentCode})}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('incidents')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><div class="d-flex gap-2 align-items-center"><h1 th:text="${i.incidentCode}">I</h1><span th:replace="~{fragments/layout :: badge(${i.severity})}"></span><span th:replace="~{fragments/layout :: badge(${i.status})}"></span></div>
+    <p class="cs-subtitle" th:text="|${i.title} - ${i.incidentType.label}|">t</p></div>
+    <a th:if="${i.canEdit and i.status.cssKey != 'closed'}" class="btn btn-outline-secondary" th:href="@{/incidents/{id}/edit(id=${i.id})}"><i class="bi bi-pencil me-1"></i>Edit</a></div>
+<div class="alert alert-secondary small" th:unless="${i.canEdit}"><i class="bi bi-lock me-1"></i>Only the assigned investigator, the creator or a Security Manager can update this incident. You can still add notes.</div>
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card mb-3"><div class="card-header">Incident details</div><div class="card-body"><dl class="cs-dl mb-0">
+            <dt>Description</dt><dd th:text="${i.description}" style="white-space:pre-line">d</dd>
+            <dt>Investigator</dt><dd th:text="${i.analystName ?: 'Unassigned'}">n</dd>
+            <dt>Detected</dt><dd th:text="${i.detectedAt != null ? #temporals.format(i.detectedAt, 'dd MMM yyyy, HH:mm') : '-'}">d</dd>
+            <dt>Resolution details</dt><dd th:text="${i.resolutionDetails ?: 'Not resolved yet'}">r</dd>
+            <dt>Resolved</dt><dd th:text="${i.resolvedAt != null ? #temporals.format(i.resolvedAt, 'dd MMM yyyy, HH:mm') : '-'}">r</dd>
+            <dt>Created</dt><dd th:text="|${#temporals.format(i.createdAt, 'dd MMM yyyy, HH:mm')} by ${i.createdByName}|">c</dd></dl></div></div>
+        <div class="card mb-3" th:if="${i.canEdit}"><div class="card-header">Assign investigator</div>
+            <form class="card-body d-flex gap-2" th:action="@{/incidents/{id}/assign(id=${i.id})}" method="post">
+                <select class="form-select" name="analystId" required><option value="">Choose...</option>
+                    <option th:each="u : ${analysts}" th:value="${u.id}" th:text="${u.label}" th:selected="${u.id == i.analystId}"></option></select>
+                <button class="btn btn-primary" type="submit">Assign</button></form></div>
+        <div class="card mb-3" th:if="${i.canEdit and !#sets.isEmpty(i.nextStatuses)}"><div class="card-header">Update status</div>
+            <form class="card-body" th:action="@{/incidents/{id}/status(id=${i.id})}" method="post">
+                <select class="form-select mb-2" name="status" required><option value="">Next status...</option>
+                    <option th:each="s : ${i.nextStatuses}" th:value="${s}" th:text="${s.label}"></option></select>
+                <textarea class="form-control mb-2" name="resolutionDetails" rows="3" maxlength="5000" placeholder="Resolution details (required when resolving)"></textarea>
+                <button class="btn btn-outline-primary" type="submit">Update status</button></form></div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card mb-3"><div class="card-header d-flex justify-content-between align-items-center"><span><i class="bi bi-bell me-2"></i>Linked alerts</span></div>
+            <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(i.alerts)}">
+                <li class="list-group-item d-flex justify-content-between" th:each="al : ${i.alerts}">
+                    <span><a class="cs-code" th:href="@{/alerts/{id}(id=${al.id})}" th:text="${al.alertCode}">A</a> <span class="small" th:text="${al.title}">t</span>
+                        <span class="small cs-muted" th:text="${al.assetCode != null} ? |(${al.assetCode})| : ''">a</span></span>
+                    <span><span th:replace="~{fragments/layout :: badge(${al.severity})}"></span><span th:replace="~{fragments/layout :: badge(${al.status})}"></span></span></li></ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(i.alerts)}">No alerts linked.</div>
+            <form th:if="${i.canEdit}" class="d-flex gap-2 p-3 border-top" th:action="@{/incidents/{id}/alerts(id=${i.id})}" method="post">
+                <select class="form-select form-select-sm" name="alertId" required><option value="">Link an alert...</option>
+                    <option th:each="o : ${alertOptions}" th:value="${o.id}" th:text="${o.label}"></option></select>
+                <button class="btn btn-sm btn-outline-primary" type="submit">Link</button></form></div>
+        <div class="card mb-3"><div class="card-header"><i class="bi bi-hdd-network me-2"></i>Affected assets</div>
+            <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(i.assets)}">
+                <li class="list-group-item" th:each="ia : ${i.assets}"><a class="cs-code" th:href="@{/assets/{id}(id=${ia.id})}" th:text="${ia.assetCode}">A</a>
+                    <span class="small" th:text="|${ia.assetName} - ${ia.departmentName}|">n</span>
+                    <div class="small cs-muted" th:text="${ia.impact ?: ''}">impact</div></li></ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(i.assets)}">No affected assets linked.</div>
+            <form th:if="${i.canEdit}" class="row g-2 p-3 border-top" th:action="@{/incidents/{id}/assets(id=${i.id})}" method="post">
+                <div class="col-md-5"><select class="form-select form-select-sm" name="assetId" required><option value="">Asset...</option>
+                    <option th:each="o : ${assetOptions}" th:value="${o.id}" th:text="${o.label}"></option></select></div>
+                <div class="col-md-5"><input class="form-control form-control-sm" name="impact" placeholder="Impact on this asset" maxlength="500"></div>
+                <div class="col-md-2"><button class="btn btn-sm btn-outline-primary w-100" type="submit">Link</button></div></form></div>
+        <div class="card" id="timeline"><div class="card-header"><i class="bi bi-clock-history me-2"></i>Investigation timeline</div>
+            <div class="card-body">
+                <form class="mb-3" th:action="@{/incidents/{id}/notes(id=${i.id})}" method="post">
+                    <div class="input-group"><textarea class="form-control" name="note" rows="2" required maxlength="4000" placeholder="Add an investigation note..."></textarea>
+                        <button class="btn btn-outline-primary" type="submit">Add note</button></div></form>
+                <ul class="cs-timeline" th:unless="${#lists.isEmpty(i.timeline)}">
+                    <li th:each="e : ${i.timeline}"><div class="small"><span class="badge cs-badge me-1" th:classappend="${e.kind == 'NOTE'} ? 'cs-open'" th:text="${e.kind == 'NOTE'} ? 'Note' : ${e.kind}">k</span>
+                        <span th:text="${e.text}" style="white-space:pre-line">t</span></div>
+                        <div class="cs-time" th:text="|${#temporals.format(e.at, 'dd MMM yyyy, HH:mm')} - ${e.author ?: 'system'}|">t</div></li></ul>
+                <div class="cs-empty" th:if="${#lists.isEmpty(i.timeline)}">No timeline entries yet.</div>
+            </div></div>
+    </div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

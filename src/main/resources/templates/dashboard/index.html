@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('dashboard')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header">
+    <div>
+        <h1 th:text="|Welcome, ${currentUser.fullName}|">Welcome</h1>
+        <p class="cs-subtitle" th:text="|${currentUser.roleLabel} dashboard - all figures are calculated live from MySQL|">Dashboard</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a th:each="qa : ${dashboard.quickActions}" class="btn btn-sm btn-outline-primary" th:href="@{${qa.link}}">
+            <i class="bi" th:classappend="${qa.icon}"></i> <span th:text="${qa.label}">Action</span></a>
+    </div>
+</div>
+
+<!-- Summary cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3" th:each="c : ${dashboard.cards}">
+        <a class="card cs-stat" th:href="${c.link != null} ? @{${c.link}} : null" th:classappend="${c.link == null} ? 'pe-none'">
+            <span class="cs-stat-icon" th:classappend="${'cs-tone-' + c.tone}"><i class="bi" th:classappend="${c.icon}"></i></span>
+            <span>
+                <span class="cs-stat-value d-block" th:text="${c.value}">0</span>
+                <span class="cs-stat-label d-block fw-semibold" th:text="${c.label}">Label</span>
+                <span class="cs-stat-label d-block" th:text="${c.hint}">hint</span>
+            </span>
+        </a>
+    </div>
+</div>
+
+<!-- Remediation progress (completed / total x 100, from MySQL) -->
+<div class="card mb-4" th:unless="${currentUser.auditor}">
+    <div class="card-body">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-2">
+            <div>
+                <h2 class="h6 fw-bold mb-0" th:text="${currentUser.engineer} ? 'My remediation progress' : 'Remediation completion progress'">Progress</h2>
+                <span class="small cs-muted" th:text="|${dashboard.progress.completed} of ${dashboard.progress.total} tasks completed|">0 of 0</span>
+            </div>
+            <span class="fs-4 fw-bold text-success" th:text="|${dashboard.progress.completionPercent}%|">0%</span>
+        </div>
+        <div class="progress" style="height:10px" role="progressbar" th:aria-valuenow="${dashboard.progress.completionPercent}">
+            <div class="progress-bar bg-success" th:style="|width: ${dashboard.progress.completionPercent}%|"></div>
+        </div>
+        <div class="d-flex flex-wrap gap-3 mt-3 small">
+            <span><span class="badge cs-badge cs-open">Open</span> <b th:text="${dashboard.progress.open}">0</b></span>
+            <span><span class="badge cs-badge cs-assigned">Assigned</span> <b th:text="${dashboard.progress.assigned}">0</b></span>
+            <span><span class="badge cs-badge cs-in-progress">In Progress</span> <b th:text="${dashboard.progress.inProgress}">0</b></span>
+            <span><span class="badge cs-badge cs-pending-verification">Pending Verification</span> <b th:text="${dashboard.progress.pendingVerification}">0</b></span>
+            <span><span class="badge cs-badge cs-reopened">Reopened</span> <b th:text="${dashboard.progress.reopened}">0</b></span>
+            <span><span class="badge cs-badge cs-completed">Completed</span> <b th:text="${dashboard.progress.completed}">0</b></span>
+            <span><span class="badge cs-badge cs-overdue">Overdue</span> <b th:text="${dashboard.progress.overdue}">0</b></span>
+        </div>
+    </div>
+</div>
+
+<!-- Charts (data loaded from /api/dashboard/charts) -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-6 col-xxl-4" th:if="${currentUser.securityOps}">
+        <div class="card h-100"><div class="card-header"><i class="bi bi-bar-chart me-2"></i>Open vulnerabilities by severity</div>
+            <div class="card-body"><div class="cs-chart-box"><canvas id="chart-vulnerabilitySeverity"></canvas>
+                <div class="cs-empty d-none" data-chart-empty><i class="bi bi-emoji-smile"></i>No open vulnerabilities</div></div></div></div>
+    </div>
+    <div class="col-lg-6 col-xxl-4" th:if="${currentUser.securityOps}">
+        <div class="card h-100"><div class="card-header"><i class="bi bi-pie-chart me-2"></i>Incident status distribution</div>
+            <div class="card-body"><div class="cs-chart-box"><canvas id="chart-incidentStatus"></canvas>
+                <div class="cs-empty d-none" data-chart-empty><i class="bi bi-inbox"></i>No incidents recorded</div></div></div></div>
+    </div>
+    <div class="col-lg-6 col-xxl-4" th:unless="${currentUser.engineer}">
+        <div class="card h-100"><div class="card-header"><i class="bi bi-hdd-stack me-2"></i>Asset distribution by type</div>
+            <div class="card-body"><div class="cs-chart-box"><canvas id="chart-assetDistribution"></canvas>
+                <div class="cs-empty d-none" data-chart-empty><i class="bi bi-inbox"></i>No assets recorded</div></div></div></div>
+    </div>
+    <div class="col-lg-6 col-xxl-4" th:unless="${currentUser.auditor}">
+        <div class="card h-100"><div class="card-header"><i class="bi bi-list-task me-2"></i>Remediation tasks by status</div>
+            <div class="card-body"><div class="cs-chart-box"><canvas id="chart-remediationProgress"></canvas>
+                <div class="cs-empty d-none" data-chart-empty><i class="bi bi-inbox"></i>No remediation tasks yet</div></div></div></div>
+    </div>
+    <div class="col-lg-6 col-xxl-4" th:unless="${currentUser.engineer}">
+        <div class="card h-100"><div class="card-header"><i class="bi bi-exclamation-diamond me-2"></i>Open risks by level</div>
+            <div class="card-body"><div class="cs-chart-box"><canvas id="chart-riskDistribution"></canvas>
+                <div class="cs-empty d-none" data-chart-empty><i class="bi bi-inbox"></i>No open risks</div></div></div></div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- Upcoming deadlines -->
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><span><i class="bi bi-calendar-event me-2"></i>Upcoming deadlines</span>
+                <a class="small" th:href="${currentUser.auditor} ? @{/audits/actions} : @{/remediation}">View all</a></div>
+            <div class="table-responsive">
+                <table class="table align-middle" th:unless="${#lists.isEmpty(dashboard.deadlines)}">
+                    <thead><tr><th>Code</th><th>Title</th><th>Due</th><th>Status</th></tr></thead>
+                    <tbody>
+                    <tr th:each="d : ${dashboard.deadlines}">
+                        <td><a class="cs-code" th:href="@{${d.link}}" th:text="${d.code}">REM</a></td>
+                        <td><div class="fw-semibold small" th:text="${#strings.abbreviate(d.title, 60)}">t</div>
+                            <div class="small cs-muted" th:text="${d.context}">ctx</div></td>
+                        <td class="small text-nowrap"><span th:text="${#temporals.format(d.dueDate, 'dd MMM')}">date</span><br>
+                            <span class="badge cs-badge" th:classappend="${d.overdue} ? 'cs-overdue' : (${d.daysLeft <= 2} ? 'cs-high' : 'cs-low')"
+                                  th:text="${d.overdue} ? |${-d.daysLeft}d overdue| : |${d.daysLeft}d left|">d</span></td>
+                        <td class="small" th:text="${d.status}">status</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(dashboard.deadlines)}"><i class="bi bi-calendar-check"></i>No upcoming deadlines</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Critical vulnerabilities -->
+    <div class="col-xl-6" th:if="${currentUser.securityOps}">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><span><i class="bi bi-exclamation-octagon me-2 text-danger"></i>Critical vulnerabilities</span>
+                <a class="small" th:href="@{/vulnerabilities(severity='CRITICAL')}">View all</a></div>
+            <div class="table-responsive">
+                <table class="table align-middle" th:unless="${#lists.isEmpty(dashboard.criticalVulnerabilities)}">
+                    <thead><tr><th>Asset</th><th>Vulnerability</th><th>CVSS</th><th>Status</th></tr></thead>
+                    <tbody>
+                    <tr th:each="v : ${dashboard.criticalVulnerabilities}">
+                        <td class="cs-code" th:text="${v.assetCode}">SRV</td>
+                        <td><a th:href="@{/asset-vulnerabilities/{id}(id=${v.instanceId})}" class="small fw-semibold" th:text="${#strings.abbreviate(v.title, 55)}">t</a>
+                            <div class="small cs-muted" th:text="${v.vulnCode}">VUL</div></td>
+                        <td><span class="badge cs-badge cs-critical" th:text="${v.cvssScore}">9.8</span></td>
+                        <td><span th:replace="~{fragments/layout :: badge(${v.status})}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(dashboard.criticalVulnerabilities)}"><i class="bi bi-shield-check"></i>No open critical vulnerabilities</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending evidence reviews -->
+    <div class="col-xl-6" th:if="${currentUser.securityOps}">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><span><i class="bi bi-patch-check me-2"></i>Pending evidence reviews</span>
+                <a class="small" th:href="@{/remediation(status='PENDING_VERIFICATION')}">View all</a></div>
+            <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(dashboard.pendingReviews)}">
+                <li class="list-group-item d-flex justify-content-between align-items-center" th:each="r : ${dashboard.pendingReviews}">
+                    <div><a class="cs-code" th:href="@{/remediation/{id}(id=${r.id})}" th:text="${r.code}">REM</a>
+                        <span class="small" th:text="${r.title}">title</span>
+                        <div class="small cs-muted" th:text="|${r.assetCode} - submitted by ${r.engineerName}|">by</div></div>
+                    <a class="btn btn-sm btn-primary" th:href="@{/remediation/{id}(id=${r.id})}">Review</a>
+                </li>
+            </ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(dashboard.pendingReviews)}"><i class="bi bi-check2-all"></i>Nothing waiting for review</div>
+        </div>
+    </div>
+
+    <!-- Recent incidents -->
+    <div class="col-xl-6" th:if="${currentUser.securityOps}">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><span><i class="bi bi-fire me-2"></i>Recent incidents</span>
+                <a class="small" th:href="@{/incidents}">View all</a></div>
+            <div class="table-responsive">
+                <table class="table align-middle" th:unless="${#lists.isEmpty(dashboard.recentIncidents)}">
+                    <thead><tr><th>Incident</th><th>Severity</th><th>Status</th><th>Investigator</th></tr></thead>
+                    <tbody>
+                    <tr th:each="i : ${dashboard.recentIncidents}">
+                        <td><a class="cs-code" th:href="@{/incidents/{id}(id=${i.id})}" th:text="${i.incidentCode}">INC</a>
+                            <div class="small" th:text="${#strings.abbreviate(i.title, 50)}">t</div></td>
+                        <td><span th:replace="~{fragments/layout :: badge(${i.severity})}"></span></td>
+                        <td><span th:replace="~{fragments/layout :: badge(${i.status})}"></span></td>
+                        <td class="small" th:text="${i.analystName ?: 'Unassigned'}">name</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(dashboard.recentIncidents)}"><i class="bi bi-inbox"></i>No incidents</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Major risks -->
+    <div class="col-xl-6" th:unless="${currentUser.engineer}">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><span><i class="bi bi-exclamation-diamond me-2"></i>Major security risks</span>
+                <a class="small" th:href="@{/risks}">Risk register</a></div>
+            <div class="table-responsive">
+                <table class="table align-middle" th:unless="${#lists.isEmpty(dashboard.topRisks)}">
+                    <thead><tr><th>Risk</th><th>Asset</th><th>Score</th><th>Level</th></tr></thead>
+                    <tbody>
+                    <tr th:each="r : ${dashboard.topRisks}">
+                        <td><a class="cs-code" th:href="@{/risks/{id}(id=${r.id})}" th:text="${r.riskCode}">RSK</a>
+                            <div class="small" th:text="${#strings.abbreviate(r.title, 50)}">t</div></td>
+                        <td class="cs-code small" th:text="${r.assetCode}">SRV</td>
+                        <td class="fw-bold" th:text="${r.riskScore}">20</td>
+                        <td><span th:replace="~{fragments/layout :: badge(${r.riskLevel})}"></span></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(dashboard.topRisks)}"><i class="bi bi-inbox"></i>No open risks</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active audit plans -->
+    <div class="col-xl-6" th:if="${currentUser.auditTeam}">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><span><i class="bi bi-clipboard-data me-2"></i>Active audit plans</span>
+                <a class="small" th:href="@{/audits}">View all</a></div>
+            <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(dashboard.activePlans)}">
+                <li class="list-group-item" th:each="p : ${dashboard.activePlans}">
+                    <div class="d-flex justify-content-between">
+                        <a class="fw-semibold" th:href="@{/audits/{id}(id=${p.id})}" th:text="|${p.planCode} - ${p.name}|">plan</a><span th:replace="~{fragments/layout :: badge(${p.status})}"></span>
+                    </div>
+                    <div class="small cs-muted" th:text="|${p.frameworkName} - target ${#temporals.format(p.targetCompletionDate, 'dd MMM yyyy')}|">fw</div>
+                </li>
+            </ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(dashboard.activePlans)}"><i class="bi bi-inbox"></i>No active audit plans</div>
+        </div>
+    </div>
+
+    <!-- User & system overview (manager) -->
+    <div class="col-xl-6" th:if="${currentUser.manager}">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><span><i class="bi bi-people me-2"></i>User and system overview</span>
+                <a class="small" th:href="@{/system}">System health</a></div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span class="badge fs-6" th:classappend="${dashboard.databaseUp} ? 'bg-success' : 'bg-danger'"
+                          th:text="${dashboard.databaseUp} ? 'Database UP' : 'Database DOWN'">DB</span>
+                    <span class="cs-muted" th:text="|${dashboard.totalUsers} active users|">users</span>
+                </div>
+                <div class="row g-2">
+                    <div class="col-6" th:each="rc : ${dashboard.usersByRole}">
+                        <div class="border rounded p-2"><div class="small cs-muted" th:text="${rc.role}">role</div>
+                            <div class="fw-bold fs-5" th:text="${rc.count}">0</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent activity from audit_logs -->
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><span><i class="bi bi-clock-history me-2"></i>Recent activity</span>
+                <a class="small" th:if="${currentUser.manager}" th:href="@{/system/audit-logs}">Audit log</a></div>
+            <div class="card-body">
+                <ul class="cs-timeline" th:unless="${#lists.isEmpty(dashboard.activity)}">
+                    <li th:each="l : ${dashboard.activity}">
+                        <div class="small"><b th:text="${l.username ?: 'system'}">user</b> <span th:text="${l.description}">desc</span></div>
+                        <div class="cs-time" th:text="|${#temporals.format(l.createdAt, 'dd MMM, HH:mm')} - ${l.module.label} / ${l.action.label}|">time</div>
+                    </li>
+                </ul>
+                <div class="cs-empty" th:if="${#lists.isEmpty(dashboard.activity)}"><i class="bi bi-inbox"></i>No activity yet</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent notifications -->
+    <div class="col-xl-6">
+        <div class="card h-100">
+            <div class="card-header d-flex justify-content-between"><span><i class="bi bi-bell me-2"></i>Recent notifications</span>
+                <a class="small" th:href="@{/notifications}">View all</a></div>
+            <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(dashboard.notifications)}">
+                <li class="list-group-item d-flex gap-2" th:each="n : ${dashboard.notifications}" th:classappend="${!n.read} ? 'fw-semibold'">
+                    <i class="bi text-primary" th:classappend="${n.icon}"></i>
+                    <div class="flex-grow-1"><a th:href="@{${n.link}}" th:text="${n.title}">title</a>
+                        <div class="small cs-muted fw-normal" th:text="|${#temporals.format(n.createdAt, 'dd MMM, HH:mm')} - ${n.categoryLabel}|">t</div></div>
+                    <span th:unless="${n.read}" class="badge bg-primary align-self-start">new</span>
+                </li>
+            </ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(dashboard.notifications)}"><i class="bi bi-bell-slash"></i>No notifications</div>
+        </div>
+    </div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:src="@{/vendor/chartjs/chart.umd.min.js}"></script>
+<script th:src="@{/js/dashboard.js}"></script>
+</body>
+</html>

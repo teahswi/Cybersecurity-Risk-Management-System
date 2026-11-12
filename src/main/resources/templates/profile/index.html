@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('My Profile')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('profile')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>My Profile</h1><p class="cs-subtitle">You can update your contact details and password. Your role can only be changed by a Security Manager.</p></div></div>
+<div class="row g-3">
+    <div class="col-lg-4"><div class="card"><div class="card-body text-center">
+        <div class="rounded-circle bg-primary text-white fw-bold fs-3 mx-auto mb-2" style="width:72px;height:72px;display:grid;place-items:center" th:text="${currentUser.initials}">U</div>
+        <h2 class="h5 fw-bold mb-0" th:text="${me.fullName}">n</h2><div class="cs-code small" th:text="${me.username}">u</div>
+        <div class="mt-2"><span th:replace="~{fragments/layout :: badge(${me.status})}"></span></div></div>
+        <div class="card-body border-top"><dl class="cs-dl mb-0">
+            <dt>Role</dt><dd th:text="${me.roleName}">r</dd><dt>Role details</dt><dd class="small" th:text="${me.roleDescription}">d</dd>
+            <dt>Department</dt><dd th:text="${me.departmentName ?: '-'}">d</dd><dt>Email</dt><dd th:text="${me.email}">e</dd>
+            <dt>Account created</dt><dd th:text="${me.createdAt != null ? #temporals.format(me.createdAt, 'dd MMM yyyy') : '-'}">c</dd><dt>Last login</dt><dd th:text="${me.lastLoginAt != null ? #temporals.format(me.lastLoginAt, 'dd MMM yyyy, HH:mm') : '-'}">l</dd></dl></div></div></div>
+    <div class="col-lg-8">
+        <div class="card mb-3"><div class="card-header">Edit profile</div>
+            <form class="card-body row g-3" th:action="@{/profile}" th:object="${profileForm}" method="post" novalidate>
+                <div class="col-md-6"><label class="form-label" for="fullName">Full name *</label><input class="form-control" th:field="*{fullName}" th:errorclass="is-invalid" required maxlength="150">
+                    <div class="invalid-feedback" th:errors="*{fullName}"></div></div>
+                <div class="col-md-6"><label class="form-label" for="email">Email *</label><input class="form-control" type="email" th:field="*{email}" th:errorclass="is-invalid" required maxlength="150">
+                    <div class="invalid-feedback" th:errors="*{email}"></div></div>
+                <div class="col-md-6"><label class="form-label" for="jobTitle">Job title</label><input class="form-control" th:field="*{jobTitle}" maxlength="100"></div>
+                <div class="col-md-6"><label class="form-label" for="phone">Phone</label><input class="form-control" th:field="*{phone}" th:errorclass="is-invalid" maxlength="30">
+                    <div class="invalid-feedback" th:errors="*{phone}"></div></div>
+                <div class="col-12"><button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i>Save profile</button></div>
+            </form></div>
+        <div class="card"><div class="card-header">Change password</div>
+            <form class="card-body row g-3" th:action="@{/profile/password}" th:object="${passwordForm}" method="post" novalidate autocomplete="off">
+                <div class="col-md-4"><label class="form-label" for="currentPassword">Current password *</label>
+                    <input class="form-control" type="password" th:field="*{currentPassword}" th:errorclass="is-invalid" required autocomplete="current-password">
+                    <div class="invalid-feedback" th:errors="*{currentPassword}"></div></div>
+                <div class="col-md-4"><label class="form-label" for="newPassword">New password *</label>
+                    <input class="form-control" type="password" th:field="*{newPassword}" th:errorclass="is-invalid" required minlength="8" maxlength="72" autocomplete="new-password">
+                    <div class="invalid-feedback" th:errors="*{newPassword}"></div></div>
+                <div class="col-md-4"><label class="form-label" for="confirmPassword">Confirm new password *</label>
+                    <input class="form-control" type="password" th:field="*{confirmPassword}" th:errorclass="is-invalid" required autocomplete="new-password">
+                    <div class="invalid-feedback" th:errors="*{confirmPassword}"></div></div>
+                <div class="col-12"><span class="small cs-muted">8+ characters with upper and lower case, a digit and a symbol.</span></div>
+                <div class="col-12"><button class="btn btn-outline-primary" type="submit"><i class="bi bi-key me-1"></i>Change password</button></div>
+            </form></div>
+    </div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

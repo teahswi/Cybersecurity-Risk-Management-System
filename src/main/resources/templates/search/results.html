@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Search')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('dashboard')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Search results</h1><p class="cs-subtitle" th:text="|Results for '${q}' (filtered by your role)|">q</p></div></div>
+<form class="cs-filter-bar d-flex gap-2" th:action="@{/search}" method="get">
+    <input class="form-control" name="q" th:value="${q}" placeholder="Search assets, vulnerabilities, incidents, tasks..." minlength="2" maxlength="100">
+    <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i></button></form>
+<div class="card"><div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(results)}">
+    <thead><tr><th>Category</th><th>Identifier</th><th>Name</th><th>Status</th><th></th></tr></thead>
+    <tbody><tr th:each="r : ${results}"><td><i class="bi me-1 text-primary" th:classappend="${r.icon}"></i><span th:text="${r.category}">c</span></td>
+        <td class="cs-code" th:text="${r.identifier}">i</td><td th:text="${r.name}">n</td><td><span class="badge cs-badge" th:text="${r.status}">s</span></td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{${r.url}}">Open</a></td></tr></tbody></table>
+    <div class="cs-empty" th:if="${#lists.isEmpty(results)}"><i class="bi bi-search"></i>No matching records you can access. Enter at least 2 characters.</div></div></div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

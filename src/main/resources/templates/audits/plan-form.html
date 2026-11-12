@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${planId == null} ? 'New audit plan' : 'Edit audit plan')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('audits')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1 th:text="${planId == null} ? 'New audit plan' : 'Edit audit plan'">Plan</h1></div></div>
+<form class="card card-body" th:action="${planId == null} ? @{/audits} : @{/audits/{id}(id=${planId})}" th:object="${form}" method="post" novalidate>
+    <div class="row g-3">
+        <div class="col-md-8"><label class="form-label" for="name">Plan name *</label><input class="form-control" th:field="*{name}" th:errorclass="is-invalid" required maxlength="200">
+            <div class="invalid-feedback" th:errors="*{name}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="frameworkId">Framework *</label><select class="form-select" th:field="*{frameworkId}" th:errorclass="is-invalid" required>
+            <option value="">Choose...</option><option th:each="f : ${frameworks}" th:value="${f.id}" th:text="${f.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{frameworkId}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="assignedAuditorId">Assigned auditor *</label><select class="form-select" th:field="*{assignedAuditorId}" th:errorclass="is-invalid" required>
+            <option value="">Choose...</option><option th:each="a : ${auditors}" th:value="${a.id}" th:text="${a.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{assignedAuditorId}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="startDate">Start date *</label><input class="form-control" type="date" th:field="*{startDate}" th:errorclass="is-invalid" required>
+            <div class="invalid-feedback" th:errors="*{startDate}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="targetCompletionDate">Target completion *</label><input class="form-control" type="date" th:field="*{targetCompletionDate}" th:errorclass="is-invalid" required>
+            <div class="invalid-feedback" th:errors="*{targetCompletionDate}"></div></div>
+        <div class="col-md-4" th:if="${planId != null}"><label class="form-label" for="status">Status</label><select class="form-select" th:field="*{status}">
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+        <div class="col-12"><label class="form-label" for="description">Scope / description</label><textarea class="form-control" th:field="*{description}" rows="4" maxlength="5000"></textarea></div>
+    </div>
+    <div class="mt-4 d-flex gap-2"><button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i>Save plan</button>
+        <a class="btn btn-outline-secondary" th:href="@{/audits}">Cancel</a></div>
+</form>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

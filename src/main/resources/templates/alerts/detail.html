@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${a.alertCode})}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('alerts')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><div class="d-flex gap-2 align-items-center"><h1 th:text="${a.alertCode}">A</h1><span th:replace="~{fragments/layout :: badge(${a.severity})}"></span><span th:replace="~{fragments/layout :: badge(${a.status})}"></span></div>
+    <p class="cs-subtitle" th:text="${a.title}">t</p></div>
+    <a class="btn btn-outline-danger" th:href="@{/incidents/new(alertId=${a.id})}"><i class="bi bi-fire me-1"></i>Create incident from alert</a></div>
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card mb-3"><div class="card-header">Alert details</div><div class="card-body"><dl class="cs-dl mb-0">
+            <dt>Source</dt><dd th:text="${a.source.label}">s</dd>
+            <dt>Detected</dt><dd th:text="${a.detectedAt != null ? #temporals.format(a.detectedAt, 'dd MMM yyyy, HH:mm') : '-'}">d</dd>
+            <dt>Related asset</dt><dd><a th:if="${a.assetId != null}" th:href="@{/assets/{id}(id=${a.assetId})}" th:text="|${a.assetCode} - ${a.assetName}|">a</a>
+                <span th:if="${a.assetId == null}">None</span></dd>
+            <dt>Assigned analyst</dt><dd th:text="${a.analystName ?: 'Unassigned'}">n</dd>
+            <dt>Description</dt><dd th:text="${a.description ?: '-'}">d</dd>
+            <dt>Recorded</dt><dd th:text="|${#temporals.format(a.createdAt, 'dd MMM yyyy, HH:mm')} by ${a.createdByName ?: 'system'}|">c</dd></dl></div></div>
+    </div>
+    <div class="col-lg-7">
+        <div class="row g-3 mb-3">
+            <div class="col-md-6"><div class="card h-100"><div class="card-header">Assign analyst</div>
+                <form class="card-body d-flex gap-2" th:action="@{/alerts/{id}/assign(id=${a.id})}" method="post">
+                    <select class="form-select" name="analystId" required><option value="">Choose...</option>
+                        <option th:each="u : ${analysts}" th:value="${u.id}" th:text="${u.label}" th:selected="${u.id == a.analystId}"></option></select>
+                    <button class="btn btn-primary" type="submit">Assign</button></form></div></div>
+            <div class="col-md-6"><div class="card h-100"><div class="card-header">Change status</div>
+                <form class="card-body d-flex gap-2" th:action="@{/alerts/{id}/status(id=${a.id})}" method="post" th:if="${!#sets.isEmpty(a.nextStatuses)}">
+                    <select class="form-select" name="status" required><option value="">Next status...</option>
+                        <option th:each="s : ${a.nextStatuses}" th:value="${s}" th:text="${s.label}"></option></select>
+                    <button class="btn btn-outline-primary" type="submit">Update</button></form>
+                <div class="card-body cs-muted small" th:if="${#sets.isEmpty(a.nextStatuses)}">This alert is closed.</div></div></div>
+        </div>
+        <div class="card mb-3"><div class="card-header">Linked incidents</div>
+            <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(a.incidents)}">
+                <li class="list-group-item" th:each="i : ${a.incidents}"><a class="cs-code" th:href="@{/incidents/{id}(id=${i.id})}" th:text="${i.incidentCode}">I</a>
+                    <span th:text="${i.title}">t</span> <span th:replace="~{fragments/layout :: badge(${i.status})}"></span></li></ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(a.incidents)}">Not linked to any incident.</div></div>
+        <div class="card"><div class="card-header">Alert history</div><div class="card-body"><ul class="cs-timeline" th:unless="${#lists.isEmpty(a.history)}">
+            <li th:each="h : ${a.history}"><div class="small" th:text="${h.description}">d</div>
+                <div class="cs-time" th:text="|${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')} - ${h.username ?: 'system'}|">t</div></li></ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(a.history)}">No changes recorded yet (seeded alert).</div></div></div>
+    </div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

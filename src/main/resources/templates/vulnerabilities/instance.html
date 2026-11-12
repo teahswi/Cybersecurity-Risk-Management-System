@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(|${p.instance.vulnCode} on ${p.instance.assetCode}|)}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('vulnerabilities')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<th:block th:with="x=${p.instance}">
+<nav aria-label="breadcrumb"><ol class="breadcrumb small">
+    <li class="breadcrumb-item"><a th:href="@{/assets/{id}(id=${x.assetId})}" th:text="${x.assetCode}">asset</a></li>
+    <li class="breadcrumb-item"><a th:href="@{/vulnerabilities/{id}(id=${x.vulnerabilityId})}" th:text="${x.vulnCode}">vuln</a></li>
+    <li class="breadcrumb-item active">Affected asset instance</li></ol></nav>
+<div class="cs-page-header"><div>
+    <div class="d-flex flex-wrap gap-2 align-items-center"><h1 th:text="|${x.vulnCode} on ${x.assetCode}|">x</h1><span th:replace="~{fragments/layout :: badge(${x.status})}"></span><span th:replace="~{fragments/layout :: badge(${x.severity})}"></span>
+        <span class="badge bg-dark" th:text="|CVSS ${x.cvssScore}|">c</span></div>
+    <p class="cs-subtitle" th:text="${x.title}">t</p></div>
+    <div class="d-flex flex-wrap gap-2" th:if="${currentUser.securityOps}">
+        <a class="btn btn-outline-primary" th:href="@{/risks/new(assetVulnerabilityId=${x.id})}"><i class="bi bi-exclamation-diamond me-1"></i>Assess risk</a>
+        <form th:action="@{/asset-vulnerabilities/{id}/observed(id=${x.id})}" method="post">
+            <button class="btn btn-outline-secondary" type="submit"><i class="bi bi-eye me-1"></i>Mark observed today</button></form>
+    </div>
+</div>
+<div class="alert alert-info small" th:if="${p.hasActiveTask}"><i class="bi bi-info-circle me-2"></i>An active remediation task exists.
+    The status of this vulnerability instance is controlled by the remediation workflow.</div>
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card mb-3"><div class="card-header">Affected asset</div><div class="card-body"><dl class="cs-dl mb-0">
+            <dt>Asset</dt><dd><a th:href="@{/assets/{id}(id=${x.assetId})}" th:text="|${x.assetCode} - ${x.assetName}|">a</a></dd>
+            <dt>Department / Office</dt><dd th:text="|${x.departmentName} - ${x.locationName}|">d</dd>
+            <dt>Criticality / Environment</dt><dd><span th:replace="~{fragments/layout :: badge(${x.assetCriticality})}"></span> <span th:replace="~{fragments/layout :: badge(${x.environment})}"></span></dd>
+            <dt>Discovered</dt><dd th:text="${x.discoveredDate != null ? #temporals.format(x.discoveredDate, 'dd MMM yyyy') : '-'}">d</dd>
+            <dt>Last observed</dt><dd th:text="${x.lastObservedDate != null ? #temporals.format(x.lastObservedDate, 'dd MMM yyyy') : '-'}">d</dd>
+            <dt>Asset-specific notes</dt><dd th:text="${x.notes ?: '-'}">n</dd></dl></div></div>
+        <div class="card mb-3"><div class="card-header">Vulnerability</div><div class="card-body"><dl class="cs-dl mb-0">
+            <dt>Description</dt><dd th:text="${x.description}">d</dd>
+            <dt>Recommended remediation</dt><dd th:text="${x.recommendedRemediation ?: '-'}">r</dd></dl></div></div>
+        <div class="card mb-3" th:if="${!#sets.isEmpty(p.manualStatuses)}"><div class="card-header">Change status (risk accepted / false positive / re-opened)</div>
+            <form class="card-body row g-2" th:action="@{/asset-vulnerabilities/{id}/status(id=${x.id})}" method="post">
+                <div class="col-md-5"><select class="form-select" name="status" required><option value="">New status...</option>
+                    <option th:each="s : ${p.manualStatuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+                <div class="col-md-7"><input class="form-control" name="reason" placeholder="Reason (required)" required maxlength="500"></div>
+                <div class="col-12"><button class="btn btn-outline-primary btn-sm" type="submit">Update status</button></div>
+            </form></div>
+    </div>
+    <div class="col-lg-7">
+        <!-- Create remediation task (demo steps 7-9) -->
+        <div class="card mb-3 border-primary" th:if="${p.canCreateTask}">
+            <div class="card-header bg-primary-subtle"><i class="bi bi-tools me-2"></i>Create remediation task</div>
+            <form class="card-body" th:action="@{/remediation}" th:object="${taskForm}" method="post" novalidate>
+                <input type="hidden" th:field="*{assetVulnerabilityId}">
+                <div class="row g-3">
+                    <div class="col-12"><label class="form-label" for="title">Task title *</label>
+                        <input class="form-control" th:field="*{title}" required maxlength="200"></div>
+                    <div class="col-12"><label class="form-label" for="description">Required action *</label>
+                        <textarea class="form-control" th:field="*{description}" rows="3" required maxlength="5000"></textarea></div>
+                    <div class="col-md-4"><label class="form-label" for="priority">Priority *</label>
+                        <select class="form-select" th:field="*{priority}" required>
+                            <option th:each="pr : ${priorities}" th:value="${pr}" th:text="${pr.label}"></option></select></div>
+                    <div class="col-md-4"><label class="form-label" for="engineerId">Assign engineer</label>
+                        <select class="form-select" th:field="*{engineerId}"><option value="">Assign later</option>
+                            <option th:each="e : ${engineers}" th:value="${e.id}" th:text="${e.label}"></option></select></div>
+                    <div class="col-md-4"><label class="form-label" for="dueDate">Deadline</label>
+                        <input class="form-control" type="date" th:field="*{dueDate}" th:attr="min=${today}"></div>
+                </div>
+                <p class="small cs-muted mt-2 mb-0">A deadline is required when an engineer is selected. The engineer is notified immediately.</p>
+                <button class="btn btn-primary mt-3" type="submit"><i class="bi bi-send me-1"></i>Create task</button>
+            </form>
+        </div>
+        <div class="card mb-3"><div class="card-header">Remediation tasks for this instance</div>
+            <div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(p.tasks)}">
+                <thead><tr><th>Task</th><th>Status</th><th>Engineer</th><th>Due</th><th>Completed</th></tr></thead>
+                <tbody><tr th:each="t : ${p.tasks}">
+                    <td><a class="cs-code" th:href="@{/remediation/{id}(id=${t.id})}" th:text="${t.taskCode}">R</a><div class="small" th:text="${t.title}">t</div></td>
+                    <td><span th:replace="~{fragments/layout :: badge(${t.status})}"></span></td><td class="small" th:text="${t.engineerName ?: 'Unassigned'}">e</td>
+                    <td class="small" th:text="${t.dueDate != null ? #temporals.format(t.dueDate, 'dd MMM yyyy') : '-'}">d</td><td class="small" th:text="${t.completedAt != null ? #temporals.format(t.completedAt, 'dd MMM yyyy, HH:mm') : '-'}">c</td>
+                </tr></tbody></table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(p.tasks)}">No remediation tasks yet.</div></div></div>
+        <div class="card mb-3"><div class="card-header">Risk assessments</div>
+            <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(p.risks)}">
+                <li class="list-group-item" th:each="r : ${p.risks}"><a class="cs-code" th:href="@{/risks/{id}(id=${r.id})}" th:text="${r.riskCode}">R</a>
+                    <span class="small" th:text="${r.title}">t</span> <b th:text="${r.riskScore}">0</b> <span th:replace="~{fragments/layout :: badge(${r.riskLevel})}"></span></li></ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(p.risks)}">Not assessed yet.</div></div>
+        <div class="card"><div class="card-header">History</div><div class="card-body"><ul class="cs-timeline" th:unless="${#lists.isEmpty(p.history)}">
+            <li th:each="h : ${p.history}"><div class="small" th:text="${h.description}">d</div>
+                <div class="cs-time" th:text="|${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')} - ${h.username ?: 'system'}|">t</div></li></ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(p.history)}">No changes recorded</div></div></div>
+    </div>
+</div>
+</th:block>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

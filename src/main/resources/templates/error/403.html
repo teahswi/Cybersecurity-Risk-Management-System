@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Access denied')}"></head>
+<body>
+<div class="d-flex align-items-center justify-content-center" style="min-height:100vh">
+    <div class="card p-4 text-center" style="max-width:520px">
+        <div class="display-4 fw-bold text-primary" th:text="${status != null ? status : '403'}">403</div>
+        <i class="bi bi-shield-x display-5 text-secondary my-2"></i>
+        <h1 class="h4 fw-bold">Access denied</h1>
+        <p class="cs-muted" th:text="${message != null ? message : 'You do not have permission to open this page.'}">You do not have permission to open this page.</p>
+        <div class="d-flex gap-2 justify-content-center mt-2">
+            <a class="btn btn-primary" th:href="@{/dashboard}"><i class="bi bi-speedometer2 me-1"></i>Back to dashboard</a>
+            <a class="btn btn-outline-secondary" href="javascript:history.back()">Go back</a>
+        </div>
+    </div>
+</div>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

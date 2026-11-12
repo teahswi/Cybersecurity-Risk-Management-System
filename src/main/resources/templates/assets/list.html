@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Asset Inventory')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('assets')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header">
+    <div><h1>Asset Inventory</h1>
+        <p class="cs-subtitle" th:text="${currentUser.engineer} ? 'Assets you own or have remediation tasks on' : 'Servers, endpoints, network devices and cloud instances'">sub</p></div>
+    <a th:if="${currentUser.manager}" class="btn btn-primary" th:href="@{/assets/new}"><i class="bi bi-plus-lg me-1"></i>Add asset</a>
+</div>
+<form class="cs-filter-bar row g-2 align-items-end" th:action="@{/assets}" method="get" th:object="${filter}">
+    <div class="col-md-3"><label class="form-label small">Search</label>
+        <input class="form-control" th:field="*{q}" placeholder="Code, name, hostname or IP"></div>
+    <div class="col-md-2"><label class="form-label small">Department</label>
+        <select class="form-select" th:field="*{departmentId}"><option value="">All</option>
+            <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.label}"></option></select></div>
+    <div class="col-md-2"><label class="form-label small">Office</label>
+        <select class="form-select" th:field="*{locationId}"><option value="">All</option>
+            <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.label}"></option></select></div>
+    <div class="col-md-1"><label class="form-label small">Type</label>
+        <select class="form-select" th:field="*{type}"><option value="">All</option>
+            <option th:each="t : ${assetTypes}" th:value="${t}" th:text="${t.label}"></option></select></div>
+    <div class="col-md-1"><label class="form-label small">Env.</label>
+        <select class="form-select" th:field="*{environment}"><option value="">All</option>
+            <option th:each="e : ${environments}" th:value="${e}" th:text="${e.label}"></option></select></div>
+    <div class="col-md-1"><label class="form-label small">Status</label>
+        <select class="form-select" th:field="*{status}"><option value="">Not archived</option>
+            <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+    <div class="col-md-2 d-flex gap-2"><button class="btn btn-primary flex-fill" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+        <a class="btn btn-outline-secondary" th:href="@{/assets}" title="Reset filters"><i class="bi bi-x-lg"></i></a></div>
+</form>
+<div class="card">
+    <div class="table-responsive">
+        <table class="table align-middle" th:unless="${page.empty}">
+            <thead><tr>
+                <th><a th:replace="~{fragments/layout :: sortable('assetCode', 'Code')}"></a></th><th><a th:replace="~{fragments/layout :: sortable('name', 'Name')}"></a></th>
+                <th><a th:replace="~{fragments/layout :: sortable('assetType', 'Type')}"></a></th><th>Department / Office</th><th>Hostname / IP</th>
+                <th><a th:replace="~{fragments/layout :: sortable('criticality', 'Criticality')}"></a></th><th><a th:replace="~{fragments/layout :: sortable('environment', 'Environment')}"></a></th>
+                <th><a th:replace="~{fragments/layout :: sortable('status', 'Status')}"></a></th><th></th></tr></thead>
+            <tbody>
+            <tr th:each="a : ${page.content}">
+                <td><a class="cs-code" th:href="@{/assets/{id}(id=${a.id})}" th:text="${a.assetCode}">SRV</a></td>
+                <td><div class="fw-semibold" th:text="${a.name}">name</div><div class="small cs-muted" th:text="${a.ownerName != null} ? |Owner: ${a.ownerName}| : 'No owner'">owner</div></td>
+                <td class="small" th:text="${a.assetType.label}">type</td>
+                <td class="small"><div th:text="${a.departmentName}">dept</div><div class="cs-muted" th:text="${a.locationName}">loc</div></td>
+                <td class="small"><div th:text="${a.hostname ?: '-'}">host</div><div class="cs-muted cs-code" th:text="${a.ipAddress ?: ''}">ip</div></td>
+                <td><span th:replace="~{fragments/layout :: badge(${a.criticality})}"></span></td>
+                <td><span th:replace="~{fragments/layout :: badge(${a.environment})}"></span></td>
+                <td><span th:replace="~{fragments/layout :: badge(${a.status})}"></span></td>
+                <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/assets/{id}(id=${a.id})}">View</a></td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="cs-empty" th:if="${page.empty}"><i class="bi bi-search"></i>No assets match your filters.</div>
+    </div>
+    <div th:replace="~{fragments/layout :: pagination(${page})}"></div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

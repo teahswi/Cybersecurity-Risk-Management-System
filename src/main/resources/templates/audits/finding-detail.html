@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${f.findingCode})}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('findings')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><div class="d-flex gap-2 align-items-center"><h1 th:text="${f.findingCode}">F</h1><span th:replace="~{fragments/layout :: badge(${f.severity})}"></span><span th:replace="~{fragments/layout :: badge(${f.status})}"></span></div>
+    <p class="cs-subtitle" th:text="${f.title}">t</p></div>
+    <a class="btn btn-outline-secondary" th:href="@{/audits/{id}(id=${f.planId})}" th:text="|Back to ${f.planCode}|">back</a></div>
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card mb-3"><div class="card-header">Finding</div><div class="card-body"><dl class="cs-dl mb-0">
+            <dt>Audit plan</dt><dd th:text="|${f.planCode} - ${f.planName}|">p</dd><dt>Framework</dt><dd th:text="${f.frameworkName}">f</dd>
+            <dt>Control</dt><dd th:text="${f.controlCode != null} ? |${f.controlCode} - ${f.controlTitle}| : 'Not linked to a control'">c</dd>
+            <dt>Description</dt><dd th:text="${f.description}">d</dd><dt>Due date</dt><dd th:text="${f.dueDate != null ? #temporals.format(f.dueDate, 'dd MMM yyyy') : '-'}">d</dd>
+            <dt>Recorded</dt><dd th:text="|${#temporals.format(f.createdAt, 'dd MMM yyyy')} by ${f.createdByName}|">c</dd></dl></div></div>
+        <div class="card mb-3" th:if="${f.canEdit}"><div class="card-header">Change finding status</div>
+            <form class="card-body d-flex gap-2" th:action="@{/audits/findings/{id}/status(id=${f.id})}" method="post">
+                <select class="form-select" name="status" required><option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${s == f.status}"></option></select>
+                <button class="btn btn-outline-primary" type="submit">Update</button></form></div>
+        <div class="card"><div class="card-header">History</div><div class="card-body"><ul class="cs-timeline" th:unless="${#lists.isEmpty(f.history)}">
+            <li th:each="h : ${f.history}"><div class="small" th:text="${h.description}">d</div>
+                <div class="cs-time" th:text="|${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')} - ${h.username ?: 'system'}|">t</div></li></ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(f.history)}">No changes recorded</div></div></div>
+    </div>
+    <div class="col-lg-7">
+        <div class="card mb-3"><div class="card-header">Corrective actions</div>
+            <div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(f.actions)}">
+                <thead><tr><th>Action</th><th>Assigned to</th><th>Deadline</th><th>Status</th><th></th></tr></thead>
+                <tbody><tr th:each="c : ${f.actions}">
+                    <td class="small" th:text="${c.description}">d</td><td class="small" th:text="${c.assignedToName}">a</td>
+                    <td class="small"><span th:text="${c.deadline != null ? #temporals.format(c.deadline, 'dd MMM yyyy') : '-'}">d</span> <span th:if="${c.overdue}" class="badge cs-badge cs-overdue">Overdue</span></td>
+                    <td><span th:replace="~{fragments/layout :: badge(${c.status})}"></span></td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/audits/actions/{id}(id=${c.id})}">Open</a></td></tr></tbody></table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(f.actions)}">No corrective actions yet.</div></div></div>
+        <div class="card" th:if="${f.canEdit and f.status.cssKey != 'closed'}"><div class="card-header"><i class="bi bi-plus-circle me-2"></i>Assign corrective action</div>
+            <form class="card-body row g-2" th:action="@{/audits/findings/{id}/actions(id=${f.id})}" th:object="${actionForm}" method="post">
+                <div class="col-12"><textarea class="form-control" th:field="*{description}" rows="2" placeholder="Corrective action to perform" required maxlength="4000"></textarea></div>
+                <div class="col-md-6"><select class="form-select" th:field="*{assignedToId}" required><option value="">Assign to...</option>
+                    <option th:each="u : ${users}" th:value="${u.id}" th:text="${u.label}"></option></select></div>
+                <div class="col-md-4"><input class="form-control" type="date" th:field="*{deadline}" required title="Deadline"></div>
+                <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Assign</button></div>
+            </form></div>
+    </div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

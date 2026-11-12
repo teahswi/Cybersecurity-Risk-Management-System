@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Departments and Offices')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('settings')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Departments &amp; Office Locations</h1><p class="cs-subtitle">Reference data used by assets and users. Records are never deleted while assets reference them.</p></div></div>
+<div class="row g-3">
+    <div class="col-xl-6"><div class="card"><div class="card-header">Departments</div>
+        <div class="table-responsive"><table class="table align-middle">
+            <thead><tr><th>Code</th><th>Name</th><th>Assets</th><th>Edit</th></tr></thead>
+            <tbody><tr th:each="d : ${departments}">
+                <td class="cs-code" th:text="${d.code}">c</td><td><div th:text="${d.name}">n</div><div class="small cs-muted" th:text="${d.description}">d</div></td>
+                <td th:text="${d.assets}">0</td>
+                <td><form class="d-flex gap-1" th:action="@{/settings/departments}" method="post">
+                    <input type="hidden" name="id" th:value="${d.id}"><input type="hidden" name="code" th:value="${d.code}">
+                    <input class="form-control form-control-sm" name="name" th:value="${d.name}" required maxlength="100">
+                    <input type="hidden" name="description" th:value="${d.description}">
+                    <button class="btn btn-sm btn-outline-primary" type="submit" title="Rename"><i class="bi bi-save"></i></button></form></td></tr></tbody></table></div>
+        <form class="row g-2 p-3 border-top" th:action="@{/settings/departments}" th:object="${departmentForm}" method="post">
+            <div class="col-md-3"><input class="form-control form-control-sm" th:field="*{code}" placeholder="Code" required maxlength="20"></div>
+            <div class="col-md-4"><input class="form-control form-control-sm" th:field="*{name}" placeholder="Name" required maxlength="100"></div>
+            <div class="col-md-5"><input class="form-control form-control-sm" th:field="*{description}" placeholder="Description" maxlength="500"></div>
+            <div class="col-12"><button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-plus"></i> Add department</button></div></form></div></div>
+    <div class="col-xl-6"><div class="card"><div class="card-header">Office locations</div>
+        <div class="table-responsive"><table class="table align-middle">
+            <thead><tr><th>Code</th><th>Office</th><th>Assets</th><th>Edit</th></tr></thead>
+            <tbody><tr th:each="l : ${locations}">
+                <td class="cs-code" th:text="${l.code}">c</td><td><div th:text="${l.name}">n</div><div class="small cs-muted" th:text="|${l.city}, ${l.country}|">c</div></td>
+                <td th:text="${l.assets}">0</td>
+                <td><form class="d-flex gap-1" th:action="@{/settings/locations}" method="post">
+                    <input type="hidden" name="id" th:value="${l.id}"><input type="hidden" name="code" th:value="${l.code}">
+                    <input class="form-control form-control-sm" name="name" th:value="${l.name}" required maxlength="100">
+                    <input type="hidden" name="city" th:value="${l.city}"><input type="hidden" name="country" th:value="${l.country}">
+                    <input type="hidden" name="address" th:value="${l.address}">
+                    <button class="btn btn-sm btn-outline-primary" type="submit" title="Rename"><i class="bi bi-save"></i></button></form></td></tr></tbody></table></div>
+        <form class="row g-2 p-3 border-top" th:action="@{/settings/locations}" th:object="${locationForm}" method="post">
+            <div class="col-md-2"><input class="form-control form-control-sm" th:field="*{code}" placeholder="Code" required maxlength="20"></div>
+            <div class="col-md-4"><input class="form-control form-control-sm" th:field="*{name}" placeholder="Office name" required maxlength="100"></div>
+            <div class="col-md-3"><input class="form-control form-control-sm" th:field="*{city}" placeholder="City" required maxlength="100"></div>
+            <div class="col-md-3"><input class="form-control form-control-sm" th:field="*{country}" placeholder="Country" required maxlength="100"></div>
+            <div class="col-12"><input class="form-control form-control-sm" th:field="*{address}" placeholder="Address" maxlength="255"></div>
+            <div class="col-12"><button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-plus"></i> Add office</button></div></form></div></div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

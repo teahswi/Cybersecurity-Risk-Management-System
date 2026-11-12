@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${assetId == null} ? 'Add asset' : 'Edit asset')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('assets')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1 th:text="${assetId == null} ? 'Add asset' : 'Edit asset'">Asset</h1>
+    <p class="cs-subtitle">Asset codes must be unique (e.g. SRV-104). Assets are archived, never deleted.</p></div>
+    <a class="btn btn-outline-secondary" th:href="${assetId == null} ? @{/assets} : @{/assets/{id}(id=${assetId})}">Cancel</a></div>
+<form class="card card-body" th:action="${assetId == null} ? @{/assets} : @{/assets/{id}(id=${assetId})}" th:object="${form}" method="post" novalidate>
+    <div class="row g-3">
+        <div class="col-md-3"><label class="form-label" for="assetCode">Asset code *</label>
+            <input class="form-control" th:field="*{assetCode}" th:errorclass="is-invalid" required maxlength="30" placeholder="SRV-104">
+            <div class="invalid-feedback" th:errors="*{assetCode}"></div></div>
+        <div class="col-md-5"><label class="form-label" for="name">Asset name *</label>
+            <input class="form-control" th:field="*{name}" th:errorclass="is-invalid" required maxlength="150">
+            <div class="invalid-feedback" th:errors="*{name}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="assetType">Asset type *</label>
+            <select class="form-select" th:field="*{assetType}" th:errorclass="is-invalid" required><option value="">Choose...</option>
+                <option th:each="t : ${assetTypes}" th:value="${t}" th:text="${t.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{assetType}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="hostname">Hostname</label>
+            <input class="form-control" th:field="*{hostname}" th:errorclass="is-invalid" maxlength="255">
+            <div class="invalid-feedback" th:errors="*{hostname}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="ipAddress">IP address</label>
+            <input class="form-control" th:field="*{ipAddress}" th:errorclass="is-invalid" maxlength="45" placeholder="10.10.4.104">
+            <div class="invalid-feedback" th:errors="*{ipAddress}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="operatingSystem">Operating system</label>
+            <input class="form-control" th:field="*{operatingSystem}" th:errorclass="is-invalid" maxlength="100">
+            <div class="invalid-feedback" th:errors="*{operatingSystem}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="departmentId">Department *</label>
+            <select class="form-select" th:field="*{departmentId}" th:errorclass="is-invalid" required><option value="">Choose...</option>
+                <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{departmentId}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="locationId">Office location *</label>
+            <select class="form-select" th:field="*{locationId}" th:errorclass="is-invalid" required><option value="">Choose...</option>
+                <option th:each="l : ${locations}" th:value="${l.id}" th:text="${l.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{locationId}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="ownerId">Asset owner</label>
+            <select class="form-select" th:field="*{ownerId}"><option value="">No owner</option>
+                <option th:each="u : ${owners}" th:value="${u.id}" th:text="${u.label}"></option></select></div>
+        <div class="col-md-4"><label class="form-label" for="criticality">Criticality *</label>
+            <select class="form-select" th:field="*{criticality}" th:errorclass="is-invalid" required><option value="">Choose...</option>
+                <option th:each="c : ${criticalities}" th:value="${c}" th:text="${c.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{criticality}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="environment">Environment *</label>
+            <select class="form-select" th:field="*{environment}" th:errorclass="is-invalid" required><option value="">Choose...</option>
+                <option th:each="e : ${environments}" th:value="${e}" th:text="${e.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{environment}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="status">Status *</label>
+            <select class="form-select" th:field="*{status}" required>
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+        <div class="col-12"><label class="form-label" for="description">Description</label>
+            <textarea class="form-control" th:field="*{description}" th:errorclass="is-invalid" rows="3" maxlength="2000"></textarea>
+            <div class="invalid-feedback" th:errors="*{description}"></div></div>
+    </div>
+    <div class="mt-4 d-flex gap-2"><button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i>Save asset</button>
+        <a class="btn btn-outline-secondary" th:href="@{/assets}">Back to inventory</a></div>
+</form>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

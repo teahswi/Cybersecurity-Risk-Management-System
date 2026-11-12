@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('System Health')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('system')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>System Overview</h1><p class="cs-subtitle">Database status is checked with a live <code>SELECT 1</code> query on every page load.</p></div>
+    <a class="btn btn-outline-primary" th:href="@{/system/audit-logs}"><i class="bi bi-journal-text me-1"></i>Audit logs</a></div>
+<div class="row g-3 mb-3" th:with="h=${health}">
+    <div class="col-md-4"><div class="card card-body"><div class="small cs-muted">Database connection</div>
+        <div class="fs-4 fw-bold" th:classappend="${h.databaseUp} ? 'text-success' : 'text-danger'"><i class="bi" th:classappend="${h.databaseUp} ? 'bi-check-circle-fill' : 'bi-x-octagon-fill'"></i>
+            <span th:text="${h.databaseUp} ? 'UP' : 'DOWN'">UP</span></div>
+        <div class="small" th:text="|MySQL ${h.databaseVersion} - schema version ${h.schemaVersion}|">v</div></div></div>
+    <div class="col-md-4"><div class="card card-body"><div class="small cs-muted">Registered users</div><div class="fs-4 fw-bold" th:text="${h.registeredUsers}">0</div>
+        <div class="small" th:text="|${h.activeUsers} active|">a</div></div></div>
+    <div class="col-md-4"><div class="card card-body"><div class="small cs-muted">Total assets (not archived)</div><div class="fs-4 fw-bold" th:text="${h.totalAssets}">0</div></div></div>
+    <div class="col-md-4"><div class="card card-body"><div class="small cs-muted">Open incidents</div><div class="fs-4 fw-bold" th:text="${h.openIncidents}">0</div></div></div>
+    <div class="col-md-4"><div class="card card-body"><div class="small cs-muted">Pending remediation tasks</div><div class="fs-4 fw-bold" th:text="${h.pendingTasks}">0</div></div></div>
+    <div class="col-md-4"><div class="card card-body"><div class="small cs-muted">Audit log entries</div><div class="fs-4 fw-bold" th:text="${h.auditLogEntries}">0</div></div></div>
+    <div class="col-md-4"><div class="card card-body"><div class="small cs-muted">Evidence storage</div>
+        <div class="fw-bold" th:classappend="${h.uploadDirectoryWritable} ? 'text-success' : 'text-danger'" th:text="${h.uploadDirectoryWritable} ? 'Writable' : 'Not writable'">w</div></div></div>
+    <div class="col-md-4"><div class="card card-body"><div class="small cs-muted">Java runtime</div><div class="fw-bold" th:text="${h.javaVersion}">21</div></div></div>
+    <div class="col-md-4"><div class="card card-body"><div class="small cs-muted">Application uptime</div><div class="fw-bold" th:text="${h.uptime}">0</div></div></div>
+</div>
+<div class="card"><div class="card-header">Latest audit log entries</div><div class="table-responsive"><table class="table align-middle">
+    <thead><tr><th>When</th><th>User</th><th>Action</th><th>Description</th></tr></thead>
+    <tbody><tr th:each="l : ${recent}"><td class="small text-nowrap" th:text="${#temporals.format(l.createdAt, 'dd MMM, HH:mm:ss')}">t</td>
+        <td class="small" th:text="${l.username ?: 'system'}">u</td><td class="small" th:text="${l.action.label}">a</td>
+        <td class="small" th:text="${l.description}">d</td></tr></tbody></table></div></div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

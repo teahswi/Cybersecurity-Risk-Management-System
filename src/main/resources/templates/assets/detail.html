@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${p.asset.assetCode})}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('assets')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<th:block th:with="a=${p.asset}">
+<div class="cs-page-header">
+    <div><div class="d-flex align-items-center gap-2"><h1 th:text="|${a.assetCode} - ${a.name}|">Asset</h1><span th:replace="~{fragments/layout :: badge(${a.status})}"></span></div>
+        <p class="cs-subtitle" th:text="|${a.assetType.label} - ${a.departmentName} - ${a.locationName}|">sub</p></div>
+    <div class="d-flex flex-wrap gap-2">
+        <a th:if="${currentUser.securityOps and !a.archived}" class="btn btn-outline-primary" th:href="@{/risks/new(assetId=${a.id})}"><i class="bi bi-exclamation-diamond me-1"></i>Assess risk</a>
+        <a th:if="${currentUser.manager}" class="btn btn-outline-secondary" th:href="@{/assets/{id}/edit(id=${a.id})}"><i class="bi bi-pencil me-1"></i>Edit</a>
+        <form th:if="${currentUser.manager and !a.archived}" th:action="@{/assets/{id}/archive(id=${a.id})}" method="post"
+              data-confirm="Archive this asset? It will be hidden from the active inventory but all history is kept.">
+            <button class="btn btn-outline-danger" type="submit"><i class="bi bi-archive me-1"></i>Archive</button></form>
+        <form th:if="${currentUser.manager and a.archived}" th:action="@{/assets/{id}/restore(id=${a.id})}" method="post">
+            <button class="btn btn-outline-success" type="submit"><i class="bi bi-arrow-counterclockwise me-1"></i>Restore</button></form>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="card h-100"><div class="card-header">Asset details</div>
+            <div class="card-body"><dl class="cs-dl mb-0">
+                <dt>Hostname</dt><dd th:text="${a.hostname ?: '-'}">h</dd>
+                <dt>IP address</dt><dd class="cs-code" th:text="${a.ipAddress ?: '-'}">ip</dd>
+                <dt>Operating system</dt><dd th:text="${a.operatingSystem ?: '-'}">os</dd>
+                <dt>Owner</dt><dd th:text="${a.ownerName ?: 'No owner'}">o</dd>
+                <dt>Criticality / Environment</dt><dd><span th:replace="~{fragments/layout :: badge(${a.criticality})}"></span> <span th:replace="~{fragments/layout :: badge(${a.environment})}"></span></dd>
+                <dt>Date added</dt><dd th:text="${a.createdAt != null ? #temporals.format(a.createdAt, 'dd MMM yyyy, HH:mm') : '-'}">d</dd>
+                <dt>Last updated</dt><dd th:text="${a.updatedAt != null ? #temporals.format(a.updatedAt, 'dd MMM yyyy, HH:mm') : '-'}">d</dd>
+                <dt>Description</dt><dd th:text="${a.description ?: '-'}">desc</dd>
+            </dl></div></div>
+    </div>
+    <div class="col-lg-8">
+        <!-- Linked vulnerabilities -->
+        <div class="card mb-3" th:unless="${currentUser.auditor}">
+            <div class="card-header d-flex justify-content-between align-items-center"><span><i class="bi bi-bug me-2"></i>Linked vulnerabilities</span>
+                <button th:if="${linkForm != null and !a.archived}" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#linkVuln">
+                    <i class="bi bi-link-45deg"></i> Link vulnerability</button></div>
+            <div id="linkVuln" class="collapse border-bottom" th:if="${linkForm != null}">
+                <form class="row g-2 p-3" th:action="@{/asset-vulnerabilities}" th:object="${linkForm}" method="post">
+                    <input type="hidden" th:field="*{assetId}">
+                    <div class="col-md-6"><select class="form-select form-select-sm" th:field="*{vulnerabilityId}" required>
+                        <option value="">Choose vulnerability...</option>
+                        <option th:each="o : ${vulnerabilityOptions}" th:value="${o.id}" th:text="${o.label}"></option></select></div>
+                    <div class="col-md-3"><input type="date" class="form-control form-control-sm" th:field="*{discoveredDate}" required title="Discovery date"></div>
+                    <div class="col-md-3"><button class="btn btn-sm btn-primary w-100" type="submit">Link</button></div>
+                    <div class="col-12"><input class="form-control form-control-sm" th:field="*{notes}" placeholder="Asset-specific notes (optional)" maxlength="2000"></div>
+                </form>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle" th:unless="${#lists.isEmpty(p.vulnerabilities)}">
+                    <thead><tr><th>Vulnerability</th><th>Severity</th><th>CVSS</th><th>Status</th><th>Discovered</th><th></th></tr></thead>
+                    <tbody><tr th:each="v : ${p.vulnerabilities}">
+                        <td><span class="cs-code" th:text="${v.vulnCode}">VUL</span><div class="small" th:text="${v.title}">t</div></td>
+                        <td><span th:replace="~{fragments/layout :: badge(${v.severity})}"></span></td><td class="fw-bold" th:text="${v.cvssScore}">9.8</td>
+                        <td><span th:replace="~{fragments/layout :: badge(${v.status})}"></span></td>
+                        <td class="small" th:text="${v.discoveredDate != null ? #temporals.format(v.discoveredDate, 'dd MMM yyyy') : '-'}">d</td>
+                        <td class="text-end"><a class="btn btn-sm btn-primary" th:href="@{/asset-vulnerabilities/{id}(id=${v.id})}">Open</a></td>
+                    </tr></tbody>
+                </table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(p.vulnerabilities)}"><i class="bi bi-shield-check"></i>No vulnerabilities recorded for this asset.</div>
+            </div>
+        </div>
+
+        <!-- Vulnerability / remediation history -->
+        <div class="card mb-3" th:unless="${currentUser.auditor}">
+            <div class="card-header"><i class="bi bi-clock-history me-2"></i>Vulnerability remediation history</div>
+            <div class="table-responsive">
+                <table class="table align-middle" th:unless="${#lists.isEmpty(p.tasks)}">
+                    <thead><tr><th>Task</th><th>Vulnerability</th><th>Status</th><th>Engineer</th><th>Due</th><th>Completed</th></tr></thead>
+                    <tbody><tr th:each="t : ${p.tasks}">
+                        <td><a class="cs-code" th:href="@{/remediation/{id}(id=${t.id})}" th:text="${t.taskCode}">REM</a><div class="small" th:text="${t.title}">t</div></td>
+                        <td class="cs-code small" th:text="${t.vulnCode}">VUL</td><td><span th:replace="~{fragments/layout :: badge(${t.status})}"></span></td>
+                        <td class="small" th:text="${t.engineerName ?: 'Unassigned'}">e</td>
+                        <td class="small" th:text="${t.dueDate != null ? #temporals.format(t.dueDate, 'dd MMM yyyy') : '-'}">d</td><td class="small" th:text="${t.completedAt != null ? #temporals.format(t.completedAt, 'dd MMM yyyy, HH:mm') : '-'}">c</td>
+                    </tr></tbody>
+                </table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(p.tasks)}"><i class="bi bi-inbox"></i>No remediation tasks for this asset yet.</div>
+            </div>
+        </div>
+
+        <!-- Installed software -->
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center"><span><i class="bi bi-box-seam me-2"></i>Installed software</span>
+                <button th:if="${installForm != null and !a.archived}" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#installSw">
+                    <i class="bi bi-plus"></i> Link software</button></div>
+            <div id="installSw" class="collapse border-bottom" th:if="${installForm != null}">
+                <form class="row g-2 p-3" th:action="@{/asset-software}" th:object="${installForm}" method="post">
+                    <input type="hidden" th:field="*{assetId}">
+                    <div class="col-md-4"><select class="form-select form-select-sm" th:field="*{softwareId}" required><option value="">Software...</option>
+                        <option th:each="o : ${softwareOptions}" th:value="${o.id}" th:text="${o.label}"></option></select></div>
+                    <div class="col-md-2"><input class="form-control form-control-sm" th:field="*{installedVersion}" placeholder="Version" required maxlength="50"></div>
+                    <div class="col-md-2"><input type="date" class="form-control form-control-sm" th:field="*{installationDate}" title="Installation date"></div>
+                    <div class="col-md-2"><select class="form-select form-select-sm" th:field="*{licenseType}" required><option value="">Licence...</option>
+                        <option th:each="l : ${licenseTypes}" th:value="${l}" th:text="${l.label}"></option></select></div>
+                    <div class="col-md-2"><input type="date" class="form-control form-control-sm" th:field="*{licenseExpiryDate}" title="Licence expiry"></div>
+                    <div class="col-12"><button class="btn btn-sm btn-primary" type="submit">Save installation</button></div>
+                </form>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle" th:unless="${#lists.isEmpty(p.software)}">
+                    <thead><tr><th>Software</th><th>Installed</th><th>Baseline</th><th>Licence</th><th>Expiry</th><th></th></tr></thead>
+                    <tbody><tr th:each="s : ${p.software}">
+                        <td><a th:href="${currentUser.engineer} ? null : @{/software/{id}(id=${s.softwareId})}" th:text="${s.softwareName}">sw</a>
+                            <div class="small cs-muted" th:text="${s.vendor}">v</div></td>
+                        <td><span class="cs-code" th:text="${s.installedVersion}">1.0</span>
+                            <span th:if="${s.outdated}" class="badge cs-badge cs-high ms-1">Outdated</span></td>
+                        <td class="cs-code small" th:text="${s.baselineVersion ?: '-'}">b</td>
+                        <td class="small" th:text="${s.licenseType.label}">l</td>
+                        <td class="small"><span th:text="${s.licenseExpiryDate != null ? #temporals.format(s.licenseExpiryDate, 'dd MMM yyyy') : '-'}">e</span>
+                            <span th:if="${s.licenseExpired}" class="badge cs-badge cs-critical ms-1">Expired</span></td>
+                        <td class="text-end"><form th:if="${currentUser.manager}" th:action="@{/asset-software/{id}/delete(id=${s.id})}" method="post"
+                                  data-confirm="Remove this software installation record?">
+                            <button class="btn btn-sm btn-outline-danger" type="submit" title="Remove"><i class="bi bi-trash"></i></button></form></td>
+                    </tr></tbody>
+                </table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(p.software)}"><i class="bi bi-box"></i>No software recorded.</div>
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-6" th:if="${currentUser.securityOps}">
+                <div class="card h-100"><div class="card-header"><i class="bi bi-fire me-2"></i>Related incidents</div>
+                    <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(p.incidents)}">
+                        <li class="list-group-item" th:each="i : ${p.incidents}"><a class="cs-code" th:href="@{/incidents/{id}(id=${i.id})}" th:text="${i.incidentCode}">INC</a>
+                            <span class="small" th:text="${i.title}">t</span> <span th:replace="~{fragments/layout :: badge(${i.status})}"></span>
+                            <div class="small cs-muted" th:text="${i.impact ?: ''}">impact</div></li></ul>
+                    <div class="cs-empty" th:if="${#lists.isEmpty(p.incidents)}">No related incidents</div></div>
+            </div>
+            <div class="col-md-6" th:if="${currentUser.securityOps}">
+                <div class="card h-100"><div class="card-header"><i class="bi bi-bell me-2"></i>Security alerts</div>
+                    <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(p.alerts)}">
+                        <li class="list-group-item" th:each="s : ${p.alerts}"><a class="cs-code" th:href="@{/alerts/{id}(id=${s.id})}" th:text="${s.alertCode}">ALT</a>
+                            <span class="small" th:text="${s.title}">t</span> <span th:replace="~{fragments/layout :: badge(${s.status})}"></span></li></ul>
+                    <div class="cs-empty" th:if="${#lists.isEmpty(p.alerts)}">No alerts for this asset</div></div>
+            </div>
+            <div class="col-md-6" th:unless="${currentUser.engineer}">
+                <div class="card h-100"><div class="card-header"><i class="bi bi-exclamation-diamond me-2"></i>Risk assessments</div>
+                    <ul class="list-group list-group-flush" th:unless="${#lists.isEmpty(p.risks)}">
+                        <li class="list-group-item" th:each="r : ${p.risks}"><a class="cs-code" th:href="@{/risks/{id}(id=${r.id})}" th:text="${r.riskCode}">RSK</a>
+                            <span class="small" th:text="${r.title}">t</span> <b th:text="${r.riskScore}">0</b> <span th:replace="~{fragments/layout :: badge(${r.riskLevel})}"></span></li></ul>
+                    <div class="cs-empty" th:if="${#lists.isEmpty(p.risks)}">No risk assessments</div></div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100"><div class="card-header"><i class="bi bi-journal-text me-2"></i>Asset change history</div>
+                    <div class="card-body"><ul class="cs-timeline" th:unless="${#lists.isEmpty(p.history)}">
+                        <li th:each="h : ${p.history}"><div class="small" th:text="${h.description}">d</div>
+                            <div class="cs-time" th:text="|${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')} - ${h.username ?: 'system'}|">t</div></li></ul>
+                        <div class="cs-empty" th:if="${#lists.isEmpty(p.history)}">No changes recorded</div></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

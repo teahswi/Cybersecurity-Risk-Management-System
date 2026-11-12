@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<!--/* Reusable layout fragments: head, sidebar, navbar, page header, flash alerts, pagination, badge, footer, scripts */-->
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}">
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}">
+    <title th:text="${title} + ' | CyberShield'">CyberShield</title>
+    <!-- Theme is chosen BEFORE the stylesheets load, so there is no wrong-theme flash -->
+    <script>
+        (function () {
+            var t = null;
+            try { t = localStorage.getItem('cs-theme'); } catch (e) { }
+            if (t !== 'light' && t !== 'dark') {
+                t = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-bs-theme', t);
+        })();
+    </script>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/favicon.svg}">
+    <link rel="stylesheet" th:href="@{/vendor/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" th:href="@{/vendor/bootstrap-icons/bootstrap-icons.min.css}">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+
+<aside th:fragment="sidebar(active)" class="cs-sidebar" aria-label="Main navigation">
+    <a class="cs-brand" th:href="@{/dashboard}">
+        <span class="cs-brand-logo"><i class="bi bi-shield-lock-fill"></i></span>
+        <span class="cs-brand-text">CyberShield</span>
+    </a>
+    <nav class="cs-nav">
+        <div class="cs-nav-section">Overview</div>
+        <a th:href="@{/dashboard}" th:classappend="${active == 'dashboard'} ? 'active'"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+
+        <div class="cs-nav-section">Inventory</div>
+        <a th:href="@{/assets}" th:classappend="${active == 'assets'} ? 'active'"><i class="bi bi-hdd-network"></i><span>Assets</span></a>
+        <a th:unless="${currentUser.engineer}" th:href="@{/software}" th:classappend="${active == 'software'} ? 'active'"><i class="bi bi-box-seam"></i><span>Software</span></a>
+
+        <th:block th:if="${currentUser.securityOps or currentUser.engineer}">
+            <div class="cs-nav-section">Security operations</div>
+            <a th:href="@{/vulnerabilities}" th:classappend="${active == 'vulnerabilities'} ? 'active'"><i class="bi bi-bug"></i><span>Vulnerabilities</span></a>
+            <a th:href="@{/remediation}" th:classappend="${active == 'remediation'} ? 'active'"><i class="bi bi-tools"></i>
+                <span th:text="${currentUser.engineer} ? 'My Assigned Tasks' : 'Remediation'">Remediation</span></a>
+            <a th:if="${currentUser.securityOps}" th:href="@{/alerts}" th:classappend="${active == 'alerts'} ? 'active'"><i class="bi bi-bell"></i><span>Security Alerts</span></a>
+            <a th:if="${currentUser.securityOps}" th:href="@{/incidents}" th:classappend="${active == 'incidents'} ? 'active'"><i class="bi bi-fire"></i><span>Incidents</span></a>
+        </th:block>
+        <a th:if="${currentUser.securityOps or currentUser.auditor}" th:href="@{/risks}" th:classappend="${active == 'risks'} ? 'active'"><i class="bi bi-exclamation-diamond"></i><span>Risk Register</span></a>
+
+        <div class="cs-nav-section">Compliance</div>
+        <th:block th:if="${currentUser.auditTeam}">
+            <a th:href="@{/audits}" th:classappend="${active == 'audits'} ? 'active'"><i class="bi bi-clipboard-data"></i><span>Audit Plans</span></a>
+            <a th:href="@{/audits/findings}" th:classappend="${active == 'findings'} ? 'active'"><i class="bi bi-journal-check"></i><span>Audit Findings</span></a>
+            <a th:href="@{/audits/frameworks}" th:classappend="${active == 'frameworks'} ? 'active'"><i class="bi bi-diagram-3"></i><span>Frameworks</span></a>
+            <a th:href="@{/audits/controls}" th:classappend="${active == 'controls'} ? 'active'"><i class="bi bi-list-columns"></i><span>Controls</span></a>
+        </th:block>
+        <a th:href="@{/audits/actions}" th:classappend="${active == 'actions'} ? 'active'"><i class="bi bi-list-check"></i>
+            <span th:text="${currentUser.auditTeam} ? 'Corrective Actions' : 'My Corrective Actions'">Corrective Actions</span></a>
+
+        <div class="cs-nav-section">Workspace</div>
+        <a th:href="@{/reports}" th:classappend="${active == 'reports'} ? 'active'"><i class="bi bi-file-earmark-bar-graph"></i><span>Reports</span></a>
+        <a th:href="@{/notifications}" th:classappend="${active == 'notifications'} ? 'active'"><i class="bi bi-bell"></i><span>Notifications</span></a>
+        <a th:href="@{/profile}" th:classappend="${active == 'profile'} ? 'active'"><i class="bi bi-person-circle"></i><span>My Profile</span></a>
+
+        <th:block th:if="${currentUser.manager}">
+            <div class="cs-nav-section">Administration</div>
+            <a th:href="@{/users}" th:classappend="${active == 'users'} ? 'active'"><i class="bi bi-people"></i><span>Users</span></a>
+            <a th:href="@{/settings}" th:classappend="${active == 'settings'} ? 'active'"><i class="bi bi-building"></i><span>Departments &amp; Offices</span></a>
+            <a th:href="@{/system}" th:classappend="${active == 'system'} ? 'active'"><i class="bi bi-activity"></i><span>System Health</span></a>
+            <a th:href="@{/system/audit-logs}" th:classappend="${active == 'auditlogs'} ? 'active'"><i class="bi bi-journal-text"></i><span>Audit Logs</span></a>
+        </th:block>
+        <div class="py-3"></div>
+    </nav>
+</aside>
+
+<header th:fragment="navbar" class="cs-topbar">
+    <button class="btn btn-sm btn-outline-secondary border-0" type="button" data-sidebar-toggle aria-label="Toggle sidebar">
+        <i class="bi bi-list fs-5"></i>
+    </button>
+    <form class="cs-search" th:action="@{/search}" method="get" role="search" autocomplete="off">
+        <i class="bi bi-search"></i>
+        <input id="csGlobalSearch" class="form-control form-control-sm" type="search" name="q"
+               placeholder="Search assets, vulnerabilities, incidents, tasks..." aria-label="Global search" maxlength="100">
+        <div id="csSearchResults" class="cs-search-results"></div>
+    </form>
+    <div class="ms-auto d-flex align-items-center gap-2">
+        <button class="btn btn-sm btn-outline-secondary border-0" type="button" data-theme-toggle aria-label="Toggle dark mode"
+                title="Toggle light / dark mode"><i data-theme-icon class="bi bi-moon-stars"></i></button>
+
+        <div class="dropdown">
+            <button class="btn btn-sm btn-outline-secondary border-0 cs-bell" type="button" data-bs-toggle="dropdown"
+                    data-bs-auto-close="outside" aria-expanded="false" aria-label="Notifications">
+                <i class="bi bi-bell fs-6"></i>
+                <span id="csNotifCount" class="badge rounded-pill bg-danger cs-count"
+                      th:classappend="${unreadNotificationCount == 0} ? 'd-none'" th:text="${unreadNotificationCount}">0</span>
+            </button>
+            <div class="dropdown-menu dropdown-menu-end cs-notif-menu">
+                <div class="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
+                    <strong>Notifications</strong>
+                    <a href="#" id="csNotifReadAll" class="small">Mark all as read</a>
+                </div>
+                <div id="csNotifList"><div class="p-3 cs-muted small">Loading...</div></div>
+                <a class="d-block text-center small py-2" th:href="@{/notifications}">View all notifications</a>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <button class="btn btn-sm d-flex align-items-center gap-2" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <span class="rounded-circle bg-primary text-white d-inline-grid align-items-center justify-content-center fw-bold"
+                      style="width:32px;height:32px;display:inline-grid;place-items:center" th:text="${currentUser.initials}">U</span>
+                <span class="d-none d-md-inline text-start lh-sm">
+                    <span class="d-block fw-semibold small" th:text="${currentUser.fullName}">User</span>
+                    <span class="d-block cs-muted" style="font-size:.72rem" th:text="${currentUser.roleLabel}">Role</span>
+                </span>
+                <i class="bi bi-chevron-down small"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person me-2"></i>My Profile</a></li>
+                <li><a class="dropdown-item" th:href="@{/notifications}"><i class="bi bi-bell me-2"></i>Notifications</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li>
+                    <form th:action="@{/logout}" method="post" class="px-2">
+                        <button class="dropdown-item text-danger rounded" type="submit"><i class="bi bi-box-arrow-right me-2"></i>Log out</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </div>
+</header>
+
+<div th:fragment="pageHeader(title, subtitle)" class="cs-page-header">
+    <div>
+        <h1 th:text="${title}">Title</h1>
+        <p class="cs-subtitle" th:if="${subtitle != null}" th:text="${subtitle}">Subtitle</p>
+    </div>
+</div>
+
+<div th:fragment="flash">
+    <div th:if="${success != null}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i><span th:text="${success}">Saved</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${error != null}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i><span th:text="${error}">Error</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<span th:fragment="badge(value)" th:if="${value != null}" class="badge cs-badge"
+      th:classappend="${'cs-' + value.cssKey}" th:text="${value.label}">Status</span>
+
+<a th:fragment="sortable(prop, label)" class="cs-sort"
+   th:href="|?${sortBaseQuery}sort=${prop}&dir=${(sort == prop and dir == 'asc') ? 'desc' : 'asc'}|">
+    <span th:text="${label}">Column</span>
+    <i th:if="${sort == prop}" class="bi" th:classappend="${dir == 'desc'} ? 'bi-caret-down-fill' : 'bi-caret-up-fill'"></i>
+</a>
+
+<div th:fragment="pagination(page)" class="d-flex flex-wrap justify-content-between align-items-center gap-2 px-3 py-2 border-top"
+     th:if="${page != null}">
+    <span class="small cs-muted"
+          th:text="${page.totalElements == 0} ? 'No records' : |Showing ${page.number * page.size + 1}-${page.number * page.size + page.numberOfElements} of ${page.totalElements}|">Showing</span>
+    <nav th:if="${page.totalPages > 1}" aria-label="Pagination">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+                <a class="page-link" th:href="|?${baseQuery}page=${page.number - 1}|" aria-label="Previous">&laquo;</a>
+            </li>
+            <li class="page-item" th:each="n : ${#numbers.sequence(0, page.totalPages - 1)}"
+                th:if="${n >= page.number - 2 and n <= page.number + 2}"
+                th:classappend="${n == page.number} ? 'active'">
+                <a class="page-link" th:href="|?${baseQuery}page=${n}|" th:text="${n + 1}">1</a>
+            </li>
+            <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+                <a class="page-link" th:href="|?${baseQuery}page=${page.number + 1}|" aria-label="Next">&raquo;</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<footer th:fragment="footer" class="cs-footer d-flex flex-wrap justify-content-between gap-2">
+    <span>&copy; CyberShield &mdash; Cybersecurity Management Platform (college DBMS project)</span>
+    <span>Data shown is stored in MySQL. Alerts are recorded data - no live SIEM is connected.</span>
+</footer>
+
+<th:block th:fragment="scripts">
+    <div class="modal fade" id="csConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header"><h5 class="modal-title"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Please confirm</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+                <div class="modal-body" data-confirm-message>Are you sure?</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" data-confirm-ok>Confirm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+    <script th:src="@{/js/app.js}"></script>
+</th:block>
+
+</body>
+</html>

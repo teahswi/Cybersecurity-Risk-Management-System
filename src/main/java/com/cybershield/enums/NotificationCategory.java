@@ -1,0 +1,9 @@
+package com.cybershield.enums;
+
+/**
+ * Category of an in-app notification.
+ * Stored in MySQL as a string (@Enumerated(EnumType.STRING)), never as an ordinal.
+ */
+public enum NotificationCategory implements LabeledEnum {
+    CRITICAL_VULNERABILITY, ALERT_ASSIGNED, INCIDENT_ASSIGNED, TASK_ASSIGNED, TASK_DEADLINE, TASK_OVERDUE, EVIDENCE_SUBMITTED, EVIDENCE_APPROVED, EVIDENCE_REJECTED, TASK_COMPLETED, TASK_REOPENED, AUDIT_FINDING, CORRECTIVE_ACTION_ASSIGNED, AUDIT_EVIDENCE_SUBMITTED, AUDIT_EVIDENCE_REVIEWED, SYSTEM
+}

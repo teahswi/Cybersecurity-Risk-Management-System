@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Corrective Actions')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('actions')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1 th:text="${currentUser.auditTeam} ? 'Corrective Actions' : 'My Corrective Actions'">Actions</h1>
+    <p class="cs-subtitle" th:text="${currentUser.auditTeam} ? 'All corrective actions from audit findings.' : 'Corrective actions assigned to you by the audit team.'">s</p></div></div>
+<form class="cs-filter-bar row g-2 align-items-end" th:action="@{/audits/actions}" method="get">
+    <div class="col-md-4"><label class="form-label small">Status</label><select class="form-select" name="status"><option value="">All</option>
+        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${s == status}"></option></select></div>
+    <div class="col-md-3" th:if="${currentUser.auditTeam}"><div class="form-check mt-4"><input class="form-check-input" type="checkbox" id="mine" name="mine" value="true" th:checked="${mine}">
+        <label class="form-check-label" for="mine">Only mine</label></div></div>
+    <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-funnel"></i> Filter</button></div>
+</form>
+<div class="card"><div class="table-responsive"><table class="table align-middle" th:unless="${page.empty}">
+    <thead><tr><th>Finding</th><th>Action</th><th>Assigned to</th><th>Deadline</th><th>Status</th><th></th></tr></thead>
+    <tbody><tr th:each="c : ${page.content}">
+        <td><span class="cs-code" th:text="${c.findingCode}">F</span><div class="small" th:text="${c.findingTitle}">t</div></td>
+        <td class="small" th:text="${#strings.abbreviate(c.description, 90)}">d</td><td class="small" th:text="${c.assignedToName}">a</td>
+        <td class="small"><span th:text="${c.deadline != null ? #temporals.format(c.deadline, 'dd MMM yyyy') : '-'}">d</span> <span th:if="${c.overdue}" class="badge cs-badge cs-overdue">Overdue</span></td>
+        <td><span th:replace="~{fragments/layout :: badge(${c.status})}"></span></td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/audits/actions/{id}(id=${c.id})}">Open</a></td></tr></tbody></table>
+    <div class="cs-empty" th:if="${page.empty}"><i class="bi bi-list-check"></i>No corrective actions.</div></div><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

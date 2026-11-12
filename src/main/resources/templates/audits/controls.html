@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Compliance Controls')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('controls')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Compliance Controls</h1><p class="cs-subtitle">Controls are used when recording audit findings.</p></div></div>
+<div class="row g-3">
+    <div class="col-lg-8">
+        <form class="cs-filter-bar row g-2 align-items-end" th:action="@{/audits/controls}" method="get">
+            <div class="col-md-5"><label class="form-label small">Framework</label><select class="form-select" name="frameworkId"><option value="">All</option>
+                <option th:each="f : ${frameworks}" th:value="${f.id}" th:text="${f.label}" th:selected="${f.id == frameworkId}"></option></select></div>
+            <div class="col-md-5"><label class="form-label small">Search</label><input class="form-control" name="q" th:value="${q}" placeholder="Code or title"></div>
+            <div class="col-md-2"><button class="btn btn-primary w-100" type="submit"><i class="bi bi-funnel"></i></button></div>
+        </form>
+        <div class="card"><div class="table-responsive"><table class="table align-middle" th:unless="${page.empty}">
+            <thead><tr><th>Code</th><th>Control</th><th>Category</th><th>Framework</th></tr></thead>
+            <tbody><tr th:each="c : ${page.content}">
+                <td class="cs-code" th:text="${c.controlCode}">c</td>
+                <td><div class="fw-semibold small" th:text="${c.title}">t</div><div class="small cs-muted" th:text="${c.description}">d</div></td>
+                <td class="small" th:text="${c.category ?: '-'}">c</td><td class="small" th:text="${c.frameworkName}">f</td></tr></tbody></table>
+            <div class="cs-empty" th:if="${page.empty}">No controls found.</div></div><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+    </div>
+    <div class="col-lg-4"><div class="card"><div class="card-header"><i class="bi bi-plus-circle me-2"></i>Add control</div>
+        <form class="card-body" th:action="@{/audits/controls}" th:object="${controlForm}" method="post">
+            <label class="form-label" for="frameworkId">Framework *</label><select class="form-select mb-2" th:field="*{frameworkId}" required><option value="">Choose...</option>
+                <option th:each="f : ${frameworks}" th:value="${f.id}" th:text="${f.label}"></option></select>
+            <label class="form-label" for="controlCode">Control code *</label><input class="form-control mb-2" th:field="*{controlCode}" required maxlength="30" placeholder="A.8.8">
+            <label class="form-label" for="title">Title *</label><input class="form-control mb-2" th:field="*{title}" required maxlength="200">
+            <label class="form-label" for="category">Category</label><input class="form-control mb-2" th:field="*{category}" maxlength="100">
+            <label class="form-label" for="description">Description</label><textarea class="form-control mb-3" th:field="*{description}" rows="3" maxlength="4000"></textarea>
+            <button class="btn btn-primary w-100" type="submit">Add control</button>
+        </form></div></div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

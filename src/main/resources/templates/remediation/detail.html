@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${p.task.taskCode})}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('remediation')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<th:block th:with="t=${p.task}, perm=${p.permissions}">
+<div class="cs-page-header"><div>
+    <div class="d-flex flex-wrap gap-2 align-items-center"><h1 th:text="${t.taskCode}">REM</h1><span th:replace="~{fragments/layout :: badge(${t.status})}"></span><span th:replace="~{fragments/layout :: badge(${t.priority})}"></span>
+        <span th:if="${t.overdue}" class="badge cs-badge cs-overdue">Overdue</span></div>
+    <p class="cs-subtitle" th:text="${t.title}">title</p></div>
+    <a class="btn btn-outline-secondary" th:href="@{/remediation}"><i class="bi bi-arrow-left me-1"></i>All tasks</a>
+</div>
+
+<!-- Workflow stepper -->
+<div class="card card-body mb-3">
+    <div class="cs-steps">
+        <th:block th:each="label, it : ${ {'Open','Assigned','In Progress','Pending Verification','Completed'} }">
+            <span class="cs-step" th:classappend="${it.index < t.step} ? 'done' : (${it.index == t.step} ? 'current' : '')"
+                  th:text="${it.index == 2 and t.status.cssKey == 'reopened'} ? 'Reopened' : ${label}">step</span>
+            <i th:unless="${it.last}" class="bi bi-chevron-right cs-step-arrow"></i>
+        </th:block>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-5">
+        <div class="card mb-3"><div class="card-header">Task details</div><div class="card-body"><dl class="cs-dl mb-0">
+            <dt>Required action</dt><dd th:text="${t.description}" style="white-space:pre-line">d</dd>
+            <dt>Assigned engineer</dt><dd th:text="${t.engineerName ?: 'Not assigned yet'}">e</dd>
+            <dt>Deadline</dt><dd th:text="${t.dueDate != null ? #temporals.format(t.dueDate, 'dd MMM yyyy') : '-'}">d</dd>
+            <dt>Created</dt><dd th:text="|${#temporals.format(t.createdAt, 'dd MMM yyyy, HH:mm')} by ${t.createdByName}|">c</dd>
+            <dt>Completed</dt><dd th:text="${t.completedAt != null ? #temporals.format(t.completedAt, 'dd MMM yyyy, HH:mm') : '-'}">c</dd>
+        </dl></div></div>
+        <div class="card mb-3"><div class="card-header"><i class="bi bi-hdd-network me-2"></i>Related asset</div><div class="card-body"><dl class="cs-dl mb-0">
+            <dt>Asset</dt><dd><a th:href="@{/assets/{id}(id=${t.assetId})}" th:text="|${t.assetCode} - ${t.assetName}|">a</a></dd>
+            <dt>Hostname / IP</dt><dd><span th:text="${t.hostname ?: '-'}">h</span> <span class="cs-code" th:text="${t.ipAddress ?: ''}">ip</span></dd>
+            <dt>Operating system</dt><dd th:text="${t.operatingSystem ?: '-'}">os</dd>
+            <dt>Department / Office</dt><dd th:text="|${t.departmentName} - ${t.locationName}|">d</dd>
+            <dt>Criticality / Environment</dt><dd><span th:replace="~{fragments/layout :: badge(${t.criticality})}"></span> <span th:replace="~{fragments/layout :: badge(${t.environment})}"></span></dd>
+        </dl></div></div>
+        <div class="card mb-3"><div class="card-header"><i class="bi bi-bug me-2"></i>Vulnerability being fixed</div><div class="card-body"><dl class="cs-dl mb-0">
+            <dt>Vulnerability</dt><dd><a th:href="@{/vulnerabilities/{id}(id=${t.vulnerabilityId})}" th:text="${t.vulnCode}">v</a> <span th:text="${t.vulnTitle}">t</span></dd>
+            <dt>Severity / CVSS</dt><dd><span th:replace="~{fragments/layout :: badge(${t.severity})}"></span> <b th:text="${t.cvssScore}">0</b></dd>
+            <dt>Status on this asset</dt><dd><span th:replace="~{fragments/layout :: badge(${t.vulnerabilityStatus})}"></span>
+                <a class="small ms-2" th:href="@{/asset-vulnerabilities/{id}(id=${t.assetVulnerabilityId})}">open instance</a></dd>
+            <dt>Recommended remediation</dt><dd th:text="${t.recommendedRemediation ?: '-'}">r</dd>
+        </dl></div></div>
+    </div>
+
+    <div class="col-lg-7">
+        <!-- Assign / re-assign (analyst / manager) -->
+        <div class="card mb-3 border-primary" th:if="${perm.canAssign}">
+            <div class="card-header bg-primary-subtle" th:text="${t.engineerId == null} ? 'Assign engineer and deadline' : 'Re-assign or change deadline'">Assign</div>
+            <form class="card-body row g-2 align-items-end" th:action="@{/remediation/{id}/assign(id=${t.id})}" method="post">
+                <div class="col-md-6"><label class="form-label small" for="engineerId">Engineer</label>
+                    <select class="form-select" id="engineerId" name="engineerId" required><option value="">Choose engineer...</option>
+                        <option th:each="e : ${engineers}" th:value="${e.id}" th:text="${e.label}" th:selected="${e.id == t.engineerId}"></option></select></div>
+                <div class="col-md-4"><label class="form-label small" for="dueDate">Deadline</label>
+                    <input class="form-control" type="date" id="dueDate" name="dueDate" required th:value="${t.dueDate}" th:attr="min=${today}"></div>
+                <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Assign</button></div>
+            </form>
+        </div>
+
+        <!-- Engineer: start work -->
+        <div class="card mb-3 border-primary" th:if="${perm.canStart}">
+            <div class="card-body d-flex justify-content-between align-items-center">
+                <div><b>Ready to start?</b><div class="small cs-muted">Changing the status to In Progress records it in the task history.</div></div>
+                <form th:action="@{/remediation/{id}/start(id=${t.id})}" method="post">
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-play-fill me-1"></i>Start work (In Progress)</button></form>
+            </div>
+        </div>
+
+        <!-- Engineer: upload evidence -->
+        <div class="card mb-3" th:if="${perm.canUpload}" id="upload">
+            <div class="card-header"><i class="bi bi-upload me-2"></i>Upload completion evidence</div>
+            <form class="card-body row g-2" th:action="@{/remediation/{id}/evidence(id=${t.id},_csrf=${_csrf.token})}" method="post" enctype="multipart/form-data">
+                <div class="col-md-6"><input class="form-control" type="file" name="file" required data-max-size="10485760" accept=".pdf,.png,.jpg,.jpeg,.txt,application/pdf,image/png,image/jpeg,text/plain"></div>
+                <div class="col-md-6"><input class="form-control" name="description" placeholder="What does this file show? (optional)" maxlength="2000"></div>
+                <div class="col-12 d-flex justify-content-between align-items-center"><span class="small cs-muted">PDF, PNG, JPG/JPEG or TXT, maximum 10 MB.</span>
+                    <button class="btn btn-outline-primary" type="submit"><i class="bi bi-cloud-upload me-1"></i>Upload</button></div>
+            </form>
+        </div>
+
+        <!-- Engineer: submit for verification -->
+        <div class="card mb-3 border-success" th:if="${perm.canSubmit}">
+            <div class="card-header bg-success-subtle"><i class="bi bi-send-check me-2"></i>Submit evidence for verification</div>
+            <form class="card-body" th:action="@{/remediation/{id}/submit(id=${t.id})}" method="post"
+                  data-confirm="Submit the uploaded evidence? The task will move to Pending Verification and reviewers will be notified.">
+                <textarea class="form-control mb-2" name="comment" rows="2" placeholder="Comment for the reviewer (optional)" maxlength="2000"></textarea>
+                <button class="btn btn-success" type="submit"><i class="bi bi-send me-1"></i>Submit evidence</button>
+            </form>
+        </div>
+        <div class="alert alert-warning small" th:if="${perm.canUpload and !p.hasDraftEvidence}">
+            <i class="bi bi-info-circle me-1"></i>Upload at least one evidence file, then submit it for verification.</div>
+
+        <!-- Reviewer: approve / reject -->
+        <div class="card mb-3 border-warning" th:if="${perm.canReview}" id="review">
+            <div class="card-header bg-warning-subtle"><i class="bi bi-patch-check me-2"></i>Review submitted evidence</div>
+            <form class="card-body" th:action="@{/remediation/{id}/review(id=${t.id})}" method="post">
+                <p class="small mb-2">Download and inspect the submitted files below, then record your decision.</p>
+                <div class="d-flex gap-3 mb-2">
+                    <div class="form-check"><input class="form-check-input" type="radio" name="decision" id="approve" value="APPROVED" required>
+                        <label class="form-check-label" for="approve"><b class="text-success">Approve</b> - task Completed, vulnerability instance Mitigated</label></div>
+                </div>
+                <div class="form-check mb-2"><input class="form-check-input" type="radio" name="decision" id="reject" value="REJECTED">
+                    <label class="form-check-label" for="reject"><b class="text-danger">Reject</b> - task returns to In Progress</label></div>
+                <textarea class="form-control mb-2" name="comments" rows="2" placeholder="Review comments (required when rejecting)" maxlength="2000"></textarea>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-check2-square me-1"></i>Record decision</button>
+            </form>
+        </div>
+
+        <!-- Reviewer: reopen -->
+        <div class="card mb-3" th:if="${perm.canReopen}">
+            <div class="card-header"><i class="bi bi-arrow-counterclockwise me-2"></i>Reopen task</div>
+            <form class="card-body row g-2" th:action="@{/remediation/{id}/reopen(id=${t.id})}" method="post"
+                  data-confirm="Reopen this completed task? The vulnerability instance will be set back to Open.">
+                <div class="col-md-9"><input class="form-control" name="reason" placeholder="Reason for reopening (required)" required maxlength="1000"></div>
+                <div class="col-md-3"><button class="btn btn-outline-danger w-100" type="submit">Reopen</button></div>
+            </form>
+        </div>
+
+        <!-- Evidence -->
+        <div class="card mb-3" id="evidence">
+            <div class="card-header"><i class="bi bi-paperclip me-2"></i>Evidence files</div>
+            <div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(p.evidence)}">
+                <thead><tr><th>File</th><th>Status</th><th>Submitted</th><th></th></tr></thead>
+                <tbody><tr th:each="e : ${p.evidence}">
+                    <td><div class="fw-semibold small" th:text="${e.originalFilename}">f</div>
+                        <div class="small cs-muted" th:text="|${e.mimeType} - ${e.sizeLabel}|">m</div>
+                        <div class="small" th:if="${e.description != null}" th:text="${e.description}">d</div></td>
+                    <td><span th:replace="~{fragments/layout :: badge(${e.status})}"></span></td>
+                    <td class="small"><span th:text="${e.submittedBy}">u</span><br><span class="cs-muted" th:text="${#temporals.format(e.submittedAt, 'dd MMM yyyy, HH:mm')}">t</span></td>
+                    <td class="text-end text-nowrap">
+                        <a th:if="${perm.canDownload}" class="btn btn-sm btn-outline-primary" th:href="@{/remediation/evidence/{eid}/download(eid=${e.id})}" title="Download"><i class="bi bi-download"></i></a>
+                        <form th:if="${perm.canUpload and e.status.cssKey == 'draft'}" class="d-inline" th:action="@{/remediation/{id}/evidence/{eid}/delete(id=${t.id},eid=${e.id})}" method="post"
+                              data-confirm="Remove this draft evidence file?"><button class="btn btn-sm btn-outline-danger" type="submit" title="Remove draft"><i class="bi bi-trash"></i></button></form>
+                    </td>
+                </tr></tbody></table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(p.evidence)}"><i class="bi bi-paperclip"></i>No evidence uploaded yet.</div></div>
+        </div>
+
+        <!-- Verification history -->
+        <div class="card mb-3">
+            <div class="card-header"><i class="bi bi-patch-check me-2"></i>Verification history</div>
+            <div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(p.reviews)}">
+                <thead><tr><th>Decision</th><th>Evidence</th><th>Reviewer</th><th>Comments</th><th>When</th></tr></thead>
+                <tbody><tr th:each="r : ${p.reviews}">
+                    <td><span th:replace="~{fragments/layout :: badge(${r.decision})}"></span></td><td class="small" th:text="${r.evidenceFilename}">f</td>
+                    <td class="small" th:text="${r.reviewer}">r</td><td class="small" th:text="${r.comments ?: '-'}">c</td>
+                    <td class="small" th:text="${#temporals.format(r.reviewedAt, 'dd MMM yyyy, HH:mm')}">t</td>
+                </tr></tbody></table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(p.reviews)}">No review decisions yet.</div></div>
+        </div>
+
+        <!-- Notes + history -->
+        <div class="card" id="history">
+            <div class="card-header"><i class="bi bi-clock-history me-2"></i>Remediation history (append-only)</div>
+            <div class="card-body">
+                <form th:if="${perm.canAddNote}" class="mb-3" th:action="@{/remediation/{id}/notes(id=${t.id})}" method="post">
+                    <div class="input-group"><textarea class="form-control" name="note" rows="2" required maxlength="4000" placeholder="Add a remediation note..."></textarea>
+                        <button class="btn btn-outline-primary" type="submit"><i class="bi bi-chat-left-text me-1"></i>Add note</button></div>
+                </form>
+                <ul class="cs-timeline">
+                    <li th:each="h : ${p.history}">
+                        <div class="d-flex flex-wrap gap-2 align-items-center"><b class="small" th:text="${h.actionType.label}">a</b>
+                            <span th:if="${h.previousStatus != null or h.newStatus != null}" class="small cs-muted">
+                                <span th:text="${h.previousStatus != null ? h.previousStatus.label : '-'}">p</span> &rarr; <span th:text="${h.newStatus != null ? h.newStatus.label : '-'}">n</span></span></div>
+                        <div class="small" th:text="${h.description}" style="white-space:pre-line">d</div>
+                        <div class="cs-time" th:text="|${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')} - ${h.performedBy}|">t</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+</th:block>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

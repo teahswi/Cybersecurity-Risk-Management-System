@@ -1,0 +1,26 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+uploads/*
+!uploads/.gitkeep
+*.log
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+### Eclipse / VS Code ###
+.classpath
+.project
+.settings/
+.vscode/
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Local secrets ###
+.env
+*.local.properties

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Audit Findings')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('findings')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Audit Findings</h1><p class="cs-subtitle">Record findings from an audit plan page.</p></div></div>
+<form class="cs-filter-bar row g-2 align-items-end" th:action="@{/audits/findings}" method="get">
+    <div class="col-md-4"><label class="form-label small">Search</label><input class="form-control" name="q" th:value="${q}" placeholder="Code or title"></div>
+    <div class="col-md-3"><label class="form-label small">Status</label><select class="form-select" name="status"><option value="">All</option>
+        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${s == status}"></option></select></div>
+    <div class="col-md-3"><label class="form-label small">Severity</label><select class="form-select" name="severity"><option value="">All</option>
+        <option th:each="s : ${severities}" th:value="${s}" th:text="${s.label}" th:selected="${s == severity}"></option></select></div>
+    <div class="col-md-2 d-flex gap-2"><button class="btn btn-primary flex-fill" type="submit"><i class="bi bi-funnel"></i></button>
+        <a class="btn btn-outline-secondary" th:href="@{/audits/findings}"><i class="bi bi-x-lg"></i></a></div>
+</form>
+<div class="card"><div class="table-responsive"><table class="table align-middle" th:unless="${page.empty}">
+    <thead><tr><th>Finding</th><th>Plan</th><th>Control</th><th>Severity</th><th>Status</th><th>Due</th><th></th></tr></thead>
+    <tbody><tr th:each="f : ${page.content}">
+        <td><a class="cs-code" th:href="@{/audits/findings/{id}(id=${f.id})}" th:text="${f.findingCode}">F</a><div class="small fw-semibold" th:text="${f.title}">t</div></td>
+        <td class="cs-code small" th:text="${f.planCode}">p</td><td class="cs-code small" th:text="${f.controlCode ?: '-'}">c</td>
+        <td><span th:replace="~{fragments/layout :: badge(${f.severity})}"></span></td><td><span th:replace="~{fragments/layout :: badge(${f.status})}"></span></td><td class="small" th:text="${f.dueDate != null ? #temporals.format(f.dueDate, 'dd MMM yyyy') : '-'}">d</td>
+        <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/audits/findings/{id}(id=${f.id})}">Open</a></td></tr></tbody></table>
+    <div class="cs-empty" th:if="${page.empty}">No findings match your filters.</div></div><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

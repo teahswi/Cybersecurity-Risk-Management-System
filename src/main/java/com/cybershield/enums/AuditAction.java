@@ -1,0 +1,9 @@
+package com.cybershield.enums;
+
+/**
+ * Action recorded in the audit log.
+ * Stored in MySQL as a string (@Enumerated(EnumType.STRING)), never as an ordinal.
+ */
+public enum AuditAction implements LabeledEnum {
+    LOGIN_SUCCESS, LOGIN_FAILURE, LOGOUT, CREATE, UPDATE, ARCHIVE, RESTORE, LINK, UNLINK, ASSIGN, STATUS_CHANGE, NOTE, EVIDENCE_UPLOAD, EVIDENCE_DELETE, EVIDENCE_SUBMIT, EVIDENCE_APPROVE, EVIDENCE_REJECT, EVIDENCE_VERIFY, REOPEN, ACTIVATE, DEACTIVATE, PASSWORD_CHANGE, PROFILE_UPDATE, REPORT_EXPORT, DOWNLOAD, SEED
+}

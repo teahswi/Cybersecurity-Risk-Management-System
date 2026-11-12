@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Software Inventory')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('software')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Software Inventory</h1>
+    <p class="cs-subtitle">Software catalogue. Installed versions are stored per asset (asset_software).</p></div>
+    <a th:if="${currentUser.manager}" class="btn btn-primary" th:href="@{/software/new}"><i class="bi bi-plus-lg me-1"></i>Add software</a></div>
+<form class="cs-filter-bar row g-2 align-items-end" th:action="@{/software}" method="get">
+    <div class="col-md-5"><label class="form-label small">Search</label><input class="form-control" name="q" th:value="${q}" placeholder="Name or vendor"></div>
+    <div class="col-md-4"><label class="form-label small">Category</label><select class="form-select" name="category"><option value="">All</option>
+        <option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}" th:selected="${c == category}"></option></select></div>
+    <div class="col-md-3 d-flex gap-2"><button class="btn btn-primary flex-fill" type="submit"><i class="bi bi-funnel"></i> Filter</button>
+        <a class="btn btn-outline-secondary" th:href="@{/software}"><i class="bi bi-x-lg"></i></a></div>
+</form>
+<div class="card"><div class="table-responsive">
+    <table class="table align-middle" th:unless="${page.empty}">
+        <thead><tr><th><a th:replace="~{fragments/layout :: sortable('name', 'Software')}"></a></th><th><a th:replace="~{fragments/layout :: sortable('vendor', 'Vendor')}"></a></th>
+            <th><a th:replace="~{fragments/layout :: sortable('category', 'Category')}"></a></th><th>Baseline version</th><th>Installations</th><th></th></tr></thead>
+        <tbody><tr th:each="s : ${page.content}">
+            <td class="fw-semibold"><a th:href="@{/software/{id}(id=${s.id})}" th:text="${s.name}">n</a></td>
+            <td th:text="${s.vendor}">v</td><td class="small" th:text="${s.category.label}">c</td>
+            <td class="cs-code" th:text="${s.baselineVersion ?: '-'}">b</td>
+            <td><span class="badge bg-secondary-subtle text-secondary-emphasis" th:text="${s.installations}">0</span></td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/software/{id}(id=${s.id})}">View</a></td>
+        </tr></tbody>
+    </table>
+    <div class="cs-empty" th:if="${page.empty}"><i class="bi bi-box"></i>No software found.</div>
+</div><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

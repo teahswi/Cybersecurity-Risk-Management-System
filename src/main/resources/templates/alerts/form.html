@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Record alert')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('alerts')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Record security alert</h1><p class="cs-subtitle">Manually record an alert reported by a monitoring tool or a user.</p></div></div>
+<form class="card card-body" th:action="@{/alerts}" th:object="${form}" method="post" novalidate>
+    <div class="row g-3">
+        <div class="col-md-8"><label class="form-label" for="title">Title *</label><input class="form-control" th:field="*{title}" th:errorclass="is-invalid" required maxlength="200">
+            <div class="invalid-feedback" th:errors="*{title}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="detectedAt">Detected at *</label><input class="form-control" type="datetime-local" th:field="*{detectedAt}" th:errorclass="is-invalid" required>
+            <div class="invalid-feedback" th:errors="*{detectedAt}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="source">Source *</label><select class="form-select" th:field="*{source}" th:errorclass="is-invalid" required>
+            <option value="">Choose...</option><option th:each="s : ${sources}" th:value="${s}" th:text="${s.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{source}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="severity">Severity *</label><select class="form-select" th:field="*{severity}" th:errorclass="is-invalid" required>
+            <option value="">Choose...</option><option th:each="s : ${severities}" th:value="${s}" th:text="${s.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{severity}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="assetId">Related asset</label><select class="form-select" th:field="*{assetId}">
+            <option value="">None</option><option th:each="a : ${assets}" th:value="${a.id}" th:text="${a.label}"></option></select></div>
+        <div class="col-md-6"><label class="form-label" for="assignedAnalystId">Assign analyst</label><select class="form-select" th:field="*{assignedAnalystId}">
+            <option value="">Unassigned</option><option th:each="a : ${analysts}" th:value="${a.id}" th:text="${a.label}"></option></select></div>
+        <div class="col-12"><label class="form-label" for="description">Description</label><textarea class="form-control" th:field="*{description}" rows="4" maxlength="5000"></textarea></div>
+    </div>
+    <div class="mt-4 d-flex gap-2"><button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i>Record alert</button>
+        <a class="btn btn-outline-secondary" th:href="@{/alerts}">Cancel</a></div>
+</form>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

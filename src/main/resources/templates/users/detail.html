@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${u.fullName})}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('users')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><div class="d-flex gap-2 align-items-center"><h1 th:text="${u.fullName}">U</h1><span th:replace="~{fragments/layout :: badge(${u.status})}"></span></div>
+    <p class="cs-subtitle" th:text="|${u.username} - ${u.roleName}|">s</p></div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" th:href="@{/users/{id}/edit(id=${u.id})}"><i class="bi bi-pencil me-1"></i>Edit</a>
+        <th:block th:if="${u.id != currentUser.id}">
+            <form th:if="${u.status.cssKey == 'active'}" th:action="@{/users/{id}/deactivate(id=${u.id})}" method="post"
+                  data-confirm="Deactivate this account? The user will no longer be able to log in.">
+                <button class="btn btn-outline-danger" type="submit"><i class="bi bi-person-x me-1"></i>Deactivate</button></form>
+            <form th:unless="${u.status.cssKey == 'active'}" th:action="@{/users/{id}/activate(id=${u.id})}" method="post">
+                <button class="btn btn-outline-success" type="submit"><i class="bi bi-person-check me-1"></i>Activate</button></form>
+        </th:block>
+    </div></div>
+<div class="row g-3">
+    <div class="col-lg-4"><div class="card"><div class="card-header">Account</div><div class="card-body"><dl class="cs-dl mb-0">
+        <dt>Email</dt><dd th:text="${u.email}">e</dd><dt>Role</dt><dd th:text="${u.roleName}">r</dd>
+        <dt>Role permissions</dt><dd class="small" th:text="${u.roleDescription}">d</dd>
+        <dt>Department</dt><dd th:text="${u.departmentName ?: '-'}">d</dd><dt>Job title</dt><dd th:text="${u.jobTitle ?: '-'}">j</dd>
+        <dt>Phone</dt><dd th:text="${u.phone ?: '-'}">p</dd><dt>Last login</dt><dd th:text="${u.lastLoginAt != null ? #temporals.format(u.lastLoginAt, 'dd MMM yyyy, HH:mm') : '-'}">l</dd>
+        <dt>Created</dt><dd th:text="${u.createdAt != null ? #temporals.format(u.createdAt, 'dd MMM yyyy, HH:mm') : '-'}">c</dd><dt>Last updated</dt><dd th:text="${u.updatedAt != null ? #temporals.format(u.updatedAt, 'dd MMM yyyy, HH:mm') : '-'}">u</dd></dl></div></div></div>
+    <div class="col-lg-8"><div class="card"><div class="card-header">Recent activity (audit log)</div>
+        <div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(u.activity)}">
+            <thead><tr><th>When</th><th>Action</th><th>Module</th><th>Description</th><th>IP</th></tr></thead>
+            <tbody><tr th:each="l : ${u.activity}"><td class="small text-nowrap" th:text="${#temporals.format(l.createdAt, 'dd MMM, HH:mm')}">t</td>
+                <td class="small" th:text="${l.action.label}">a</td><td class="small" th:text="${l.module.label}">m</td>
+                <td class="small"><a th:if="${l.link != null}" th:href="@{${l.link}}" th:text="${l.description}">d</a><span th:if="${l.link == null}" th:text="${l.description}">d</span></td>
+                <td class="small cs-code" th:text="${l.ipAddress ?: '-'}">ip</td></tr></tbody></table>
+            <div class="cs-empty" th:if="${#lists.isEmpty(u.activity)}">No activity recorded.</div></div></div></div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

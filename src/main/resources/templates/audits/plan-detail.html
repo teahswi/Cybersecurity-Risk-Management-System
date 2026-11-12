@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${plan.planCode})}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('audits')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><div class="d-flex gap-2 align-items-center"><h1 th:text="${plan.planCode}">P</h1><span th:replace="~{fragments/layout :: badge(${plan.status})}"></span></div>
+    <p class="cs-subtitle" th:text="|${plan.name} - ${plan.frameworkName}|">n</p></div>
+    <div class="d-flex gap-2" th:if="${plan.canEdit}">
+        <a th:if="${!#sets.isEmpty(plan.nextStatuses)}" class="btn btn-outline-secondary" th:href="@{/audits/{id}/edit(id=${plan.id})}"><i class="bi bi-pencil me-1"></i>Edit</a>
+        <form th:each="s : ${plan.nextStatuses}" th:action="@{/audits/{id}/status(id=${plan.id})}" method="post"
+              th:attr="data-confirm=|Change the plan status to ${s.label}?|">
+            <input type="hidden" name="status" th:value="${s}">
+            <button class="btn btn-outline-primary" type="submit" th:text="|Mark ${s.label}|">s</button></form>
+    </div></div>
+<div class="row g-3">
+    <div class="col-lg-4"><div class="card mb-3"><div class="card-header">Plan details</div><div class="card-body"><dl class="cs-dl mb-0">
+        <dt>Framework</dt><dd th:text="${plan.frameworkName}">f</dd><dt>Assigned auditor</dt><dd th:text="${plan.auditorName}">a</dd>
+        <dt>Period</dt><dd th:text="|${#temporals.format(plan.startDate, 'dd MMM yyyy')} - ${#temporals.format(plan.targetCompletionDate, 'dd MMM yyyy')}|">p</dd>
+        <dt>Scope</dt><dd th:text="${plan.description ?: '-'}">d</dd>
+        <dt>Created</dt><dd th:text="|${#temporals.format(plan.createdAt, 'dd MMM yyyy')} by ${plan.createdByName}|">c</dd></dl></div></div>
+        <div class="card"><div class="card-header">Plan history</div><div class="card-body"><ul class="cs-timeline" th:unless="${#lists.isEmpty(plan.history)}">
+            <li th:each="h : ${plan.history}"><div class="small" th:text="${h.description}">d</div>
+                <div class="cs-time" th:text="|${#temporals.format(h.createdAt, 'dd MMM yyyy, HH:mm')} - ${h.username ?: 'system'}|">t</div></li></ul>
+            <div class="cs-empty" th:if="${#lists.isEmpty(plan.history)}">No changes recorded</div></div></div></div>
+    <div class="col-lg-8">
+        <div class="card mb-3"><div class="card-header">Audit findings</div>
+            <div class="table-responsive"><table class="table align-middle" th:unless="${#lists.isEmpty(plan.findings)}">
+                <thead><tr><th>Finding</th><th>Control</th><th>Severity</th><th>Status</th><th>Due</th><th></th></tr></thead>
+                <tbody><tr th:each="f : ${plan.findings}">
+                    <td><a class="cs-code" th:href="@{/audits/findings/{id}(id=${f.id})}" th:text="${f.findingCode}">F</a><div class="small" th:text="${f.title}">t</div></td>
+                    <td class="cs-code small" th:text="${f.controlCode ?: '-'}">c</td><td><span th:replace="~{fragments/layout :: badge(${f.severity})}"></span></td><td><span th:replace="~{fragments/layout :: badge(${f.status})}"></span></td>
+                    <td class="small" th:text="${f.dueDate != null ? #temporals.format(f.dueDate, 'dd MMM yyyy') : '-'}">d</td>
+                    <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/audits/findings/{id}(id=${f.id})}">Open</a></td></tr></tbody></table>
+                <div class="cs-empty" th:if="${#lists.isEmpty(plan.findings)}">No findings recorded yet.</div></div></div>
+        <div class="card" th:if="${plan.canEdit and !#sets.isEmpty(plan.nextStatuses)}"><div class="card-header"><i class="bi bi-plus-circle me-2"></i>Record audit finding</div>
+            <form class="card-body row g-2" th:action="@{/audits/{id}/findings(id=${plan.id})}" th:object="${findingForm}" method="post">
+                <div class="col-md-8"><input class="form-control" th:field="*{title}" placeholder="Finding title" required maxlength="200"></div>
+                <div class="col-md-4"><select class="form-select" th:field="*{severity}" required><option value="">Severity...</option>
+                    <option th:each="s : ${severities}" th:value="${s}" th:text="${s.label}"></option></select></div>
+                <div class="col-md-8"><select class="form-select" th:field="*{controlId}"><option value="">Related control (optional)</option>
+                    <option th:each="c : ${controls}" th:value="${c.id}" th:text="${c.label}"></option></select></div>
+                <div class="col-md-4"><input class="form-control" type="date" th:field="*{dueDate}" title="Due date"></div>
+                <div class="col-12"><textarea class="form-control" th:field="*{description}" rows="3" placeholder="Description of the finding" required maxlength="5000"></textarea></div>
+                <div class="col-12"><button class="btn btn-primary" type="submit">Record finding</button></div>
+            </form></div>
+    </div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

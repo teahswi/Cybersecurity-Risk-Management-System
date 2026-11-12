@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${riskId == null} ? 'New risk assessment' : 'Edit risk assessment')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('risks')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1 th:text="${riskId == null} ? 'New risk assessment' : 'Edit risk assessment'">Risk</h1>
+    <p class="cs-subtitle">The score and level are calculated by the server from likelihood and impact. They cannot be typed in.</p></div></div>
+<form class="card card-body" th:action="${riskId == null} ? @{/risks} : @{/risks/{id}(id=${riskId})}" th:object="${form}" method="post" novalidate>
+    <input type="hidden" th:field="*{assetVulnerabilityId}">
+    <div class="row g-3">
+        <div class="col-md-8"><label class="form-label" for="title">Risk title *</label><input class="form-control" th:field="*{title}" th:errorclass="is-invalid" required maxlength="200">
+            <div class="invalid-feedback" th:errors="*{title}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="assetId">Related asset *</label>
+            <select class="form-select" th:field="*{assetId}" th:errorclass="is-invalid" required th:disabled="${form.assetVulnerabilityId != null}">
+                <option value="">Choose...</option><option th:each="a : ${assets}" th:value="${a.id}" th:text="${a.label}"></option></select>
+            <input th:if="${form.assetVulnerabilityId != null}" type="hidden" th:field="*{assetId}">
+            <div class="invalid-feedback" th:errors="*{assetId}"></div>
+            <div class="small cs-muted" th:if="${form.assetVulnerabilityId != null}">Linked to a specific vulnerability instance.</div></div>
+        <div class="col-12"><label class="form-label" for="description">Description</label><textarea class="form-control" th:field="*{description}" rows="3" maxlength="5000"></textarea></div>
+        <div class="col-md-3"><label class="form-label" for="likelihood">Likelihood (1-5) *</label>
+            <select class="form-select" th:field="*{likelihood}" th:errorclass="is-invalid" required><option value="">Choose...</option>
+                <option th:each="n : ${ {1,2,3,4,5} }" th:value="${n}"
+                        th:text="${n + ' - ' + {'Rare','Unlikely','Possible','Likely','Almost certain'}[n - 1]}">1</option></select>
+            <div class="invalid-feedback" th:errors="*{likelihood}"></div></div>
+        <div class="col-md-3"><label class="form-label" for="impact">Impact (1-5) *</label>
+            <select class="form-select" th:field="*{impact}" th:errorclass="is-invalid" required><option value="">Choose...</option>
+                <option th:each="n : ${ {1,2,3,4,5} }" th:value="${n}"
+                        th:text="${n + ' - ' + {'Negligible','Minor','Moderate','Major','Severe'}[n - 1]}">1</option></select>
+            <div class="invalid-feedback" th:errors="*{impact}"></div></div>
+        <div class="col-md-6 d-flex align-items-end"><div class="border rounded px-3 py-2 w-100" id="riskPreview">Score preview</div></div>
+        <div class="col-md-4"><label class="form-label" for="treatmentStrategy">Treatment strategy *</label>
+            <select class="form-select" th:field="*{treatmentStrategy}" th:errorclass="is-invalid" required><option value="">Choose...</option>
+                <option th:each="s : ${strategies}" th:value="${s}" th:text="${s.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{treatmentStrategy}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="ownerId">Risk owner</label>
+            <select class="form-select" th:field="*{ownerId}"><option value="">None</option>
+                <option th:each="u : ${users}" th:value="${u.id}" th:text="${u.label}"></option></select></div>
+        <div class="col-md-4"><label class="form-label" for="status">Status *</label>
+            <select class="form-select" th:field="*{status}" required><option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+    </div>
+    <div class="mt-4 d-flex gap-2"><button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i>Save assessment</button>
+        <a class="btn btn-outline-secondary" th:href="@{/risks}">Cancel</a></div>
+</form>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+<script th:src="@{/js/risk-form.js}"></script>
+</body>
+</html>

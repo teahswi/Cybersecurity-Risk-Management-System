@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Reports')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('reports')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Reports</h1><p class="cs-subtitle">Reports are generated from live MySQL records. Only reports permitted for your role are shown; every export is audit-logged.</p></div></div>
+<div class="row g-3">
+    <div class="col-xl-6" th:if="${#lists.contains(reports.![slug], 'assets')}">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h6 fw-bold"><i class="bi bi-hdd-network me-2 text-primary"></i><span th:text="'Asset inventory report'">Report</span></h2>
+            <p class="small cs-muted">All assets with department, office, owner and open vulnerability counts (uses the v_asset_vulnerability_summary view).</p>
+            <form class="row g-2" th:action="@{/reports/assets.pdf}" method="get" id="form-assets">
+                <div class="col-md-6"><label class="form-label small">Department</label><select class="form-select form-select-sm" name="departmentId"><option value="">All</option>
+            <option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.label}"></option></select></div>
+        <div class="col-md-6"><label class="form-label small">Asset status</label><select class="form-select form-select-sm" name="assetStatus"><option value="">All</option>
+            <option th:each="s : ${assetStatuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</button>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" th:formaction="@{/reports/assets.csv}"><i class="bi bi-filetype-csv me-1"></i>Download CSV</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+    <div class="col-xl-6" th:if="${#lists.contains(reports.![slug], 'vulnerabilities')}">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h6 fw-bold"><i class="bi bi-bug me-2 text-primary"></i><span th:text="'Vulnerability report'">Report</span></h2>
+            <p class="small cs-muted">Every vulnerability instance per asset with severity, CVSS and status.</p>
+            <form class="row g-2" th:action="@{/reports/vulnerabilities.pdf}" method="get" id="form-vulnerabilities">
+                <div class="col-md-6"><label class="form-label small">Severity</label><select class="form-select form-select-sm" name="severity"><option value="">All</option>
+            <option th:each="s : ${severities}" th:value="${s}" th:text="${s.label}"></option></select></div>
+        <div class="col-md-6"><label class="form-label small">Status</label><select class="form-select form-select-sm" name="vulnerabilityStatus"><option value="">All</option>
+            <option th:each="s : ${vulnerabilityStatuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</button>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" th:formaction="@{/reports/vulnerabilities.csv}"><i class="bi bi-filetype-csv me-1"></i>Download CSV</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+    <div class="col-xl-6" th:if="${#lists.contains(reports.![slug], 'incidents')}">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h6 fw-bold"><i class="bi bi-fire me-2 text-primary"></i><span th:text="'Incident report'">Report</span></h2>
+            <p class="small cs-muted">Incidents with type, severity, investigator and resolution dates.</p>
+            <form class="row g-2" th:action="@{/reports/incidents.pdf}" method="get" id="form-incidents">
+                <div class="col-md-4"><label class="form-label small">Status</label><select class="form-select form-select-sm" name="incidentStatus"><option value="">All</option>
+            <option th:each="s : ${incidentStatuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+        <div class="col-md-4"><label class="form-label small">Detected from</label><input class="form-control form-control-sm" type="date" name="from"></div>
+        <div class="col-md-4"><label class="form-label small">Detected to</label><input class="form-control form-control-sm" type="date" name="to"></div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</button>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" th:formaction="@{/reports/incidents.csv}"><i class="bi bi-filetype-csv me-1"></i>Download CSV</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+    <div class="col-xl-6" th:if="${#lists.contains(reports.![slug], 'remediation')}">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h6 fw-bold"><i class="bi bi-tools me-2 text-primary"></i><span th:text="'Remediation report'">Report</span></h2>
+            <p class="small cs-muted">Remediation tasks with asset, vulnerability, engineer, deadlines and overdue flag.</p>
+            <form class="row g-2" th:action="@{/reports/remediation.pdf}" method="get" id="form-remediation">
+                <div class="col-md-6"><label class="form-label small">Task status</label><select class="form-select form-select-sm" name="taskStatus"><option value="">All</option>
+            <option th:each="s : ${taskStatuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</button>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" th:formaction="@{/reports/remediation.csv}"><i class="bi bi-filetype-csv me-1"></i>Download CSV</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+    <div class="col-xl-6" th:if="${#lists.contains(reports.![slug], 'audit')}">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h6 fw-bold"><i class="bi bi-journal-check me-2 text-primary"></i><span th:text="'Audit findings report'">Report</span></h2>
+            <p class="small cs-muted">Audit findings with controls, status and corrective action counts.</p>
+            <form class="row g-2" th:action="@{/reports/audit.pdf}" method="get" id="form-audit">
+                <div class="col-md-8"><label class="form-label small">Audit plan</label><select class="form-select form-select-sm" name="planId"><option value="">All plans</option>
+            <option th:each="p : ${plans}" th:value="${p.id}" th:text="${p.label}"></option></select></div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</button>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" th:formaction="@{/reports/audit.csv}"><i class="bi bi-filetype-csv me-1"></i>Download CSV</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+    <div class="col-xl-6" th:if="${#lists.contains(reports.![slug], 'risks')}">
+        <div class="card h-100"><div class="card-body">
+            <h2 class="h6 fw-bold"><i class="bi bi-exclamation-diamond me-2 text-primary"></i><span th:text="'Risk register report'">Report</span></h2>
+            <p class="small cs-muted">Risk register with likelihood, impact, calculated score and treatment strategy.</p>
+            <form class="row g-2" th:action="@{/reports/risks.pdf}" method="get" id="form-risks">
+                <div class="col-md-6"><label class="form-label small">Risk level</label><select class="form-select form-select-sm" name="riskLevel"><option value="">All</option>
+            <option th:each="s : ${riskLevels}" th:value="${s}" th:text="${s.label}"></option></select></div>
+        <div class="col-md-6"><label class="form-label small">Status</label><select class="form-select form-select-sm" name="riskStatus"><option value="">All</option>
+            <option th:each="s : ${riskStatuses}" th:value="${s}" th:text="${s.label}"></option></select></div>
+                <div class="col-12 d-flex gap-2 mt-2">
+                    <button class="btn btn-sm btn-primary" type="submit"><i class="bi bi-file-earmark-pdf me-1"></i>Download PDF</button>
+                    <button class="btn btn-sm btn-outline-primary" type="submit" th:formaction="@{/reports/risks.csv}"><i class="bi bi-filetype-csv me-1"></i>Download CSV</button>
+                </div>
+            </form>
+        </div></div>
+    </div>
+</div>
+<div class="cs-empty" th:if="${#lists.isEmpty(reports)}">No reports are available for your role.</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

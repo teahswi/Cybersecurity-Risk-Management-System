@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Vulnerabilities')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('vulnerabilities')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Vulnerability Management</h1>
+    <p class="cs-subtitle">Vulnerability definitions and how many assets they affect. Open one to see each affected asset.</p></div>
+    <a th:if="${currentUser.securityOps}" class="btn btn-primary" th:href="@{/vulnerabilities/new}"><i class="bi bi-plus-lg me-1"></i>New vulnerability</a></div>
+<form class="cs-filter-bar row g-2 align-items-end" th:action="@{/vulnerabilities}" method="get">
+    <div class="col-md-4"><label class="form-label small">Search</label><input class="form-control" name="q" th:value="${q}" placeholder="Code, title or CVE"></div>
+    <div class="col-md-3"><label class="form-label small">Severity</label><select class="form-select" name="severity"><option value="">All</option>
+        <option th:each="s : ${severities}" th:value="${s}" th:text="${s.label}" th:selected="${s == severity}"></option></select></div>
+    <div class="col-md-3"><label class="form-label small">Has instances with status</label><select class="form-select" name="status"><option value="">Any</option>
+        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${s == status}"></option></select></div>
+    <div class="col-md-2 d-flex gap-2"><button class="btn btn-primary flex-fill" type="submit"><i class="bi bi-funnel"></i></button>
+        <a class="btn btn-outline-secondary" th:href="@{/vulnerabilities}"><i class="bi bi-x-lg"></i></a></div>
+</form>
+<div class="card"><div class="table-responsive">
+    <table class="table align-middle" th:unless="${page.empty}">
+        <thead><tr><th><a th:replace="~{fragments/layout :: sortable('vulnCode', 'Code')}"></a></th><th><a th:replace="~{fragments/layout :: sortable('title', 'Title')}"></a></th><th>CVE</th>
+            <th><a th:replace="~{fragments/layout :: sortable('severity', 'Severity')}"></a></th><th><a th:replace="~{fragments/layout :: sortable('cvssScore', 'CVSS')}"></a></th><th>Affected assets</th><th>Open</th><th></th></tr></thead>
+        <tbody><tr th:each="v : ${page.content}">
+            <td><a class="cs-code" th:href="@{/vulnerabilities/{id}(id=${v.id})}" th:text="${v.vulnCode}">VUL</a></td>
+            <td class="fw-semibold" th:text="${v.title}">t</td><td class="cs-code small" th:text="${v.cveId ?: '-'}">cve</td>
+            <td><span th:replace="~{fragments/layout :: badge(${v.severity})}"></span></td><td class="fw-bold" th:text="${v.cvssScore}">0</td>
+            <td th:text="${v.affectedAssets}">0</td>
+            <td><span class="badge cs-badge" th:classappend="${v.openInstances > 0} ? 'cs-open' : 'cs-completed'" th:text="${v.openInstances}">0</span></td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/vulnerabilities/{id}(id=${v.id})}">View</a></td>
+        </tr></tbody>
+    </table>
+    <div class="cs-empty" th:if="${page.empty}"><i class="bi bi-shield-check"></i>No vulnerabilities match your filters.</div>
+</div><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

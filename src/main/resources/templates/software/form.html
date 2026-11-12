@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${softwareId == null} ? 'Add software' : 'Edit software')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('software')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1 th:text="${softwareId == null} ? 'Add software' : 'Edit software'">Software</h1>
+    <p class="cs-subtitle">The baseline version is the company-approved minimum. Lower installed versions are flagged as outdated.</p></div></div>
+<form class="card card-body" th:action="${softwareId == null} ? @{/software} : @{/software/{id}(id=${softwareId})}" th:object="${form}" method="post" novalidate>
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label" for="name">Name *</label><input class="form-control" th:field="*{name}" th:errorclass="is-invalid" required maxlength="150">
+            <div class="invalid-feedback" th:errors="*{name}"></div></div>
+        <div class="col-md-6"><label class="form-label" for="vendor">Vendor *</label><input class="form-control" th:field="*{vendor}" th:errorclass="is-invalid" required maxlength="150">
+            <div class="invalid-feedback" th:errors="*{vendor}"></div></div>
+        <div class="col-md-6"><label class="form-label" for="category">Category *</label><select class="form-select" th:field="*{category}" th:errorclass="is-invalid" required>
+            <option value="">Choose...</option><option th:each="c : ${categories}" th:value="${c}" th:text="${c.label}"></option></select>
+            <div class="invalid-feedback" th:errors="*{category}"></div></div>
+        <div class="col-md-6"><label class="form-label" for="baselineVersion">Baseline version</label><input class="form-control" th:field="*{baselineVersion}" th:errorclass="is-invalid" maxlength="50" placeholder="e.g. 9.6">
+            <div class="invalid-feedback" th:errors="*{baselineVersion}"></div></div>
+        <div class="col-12"><label class="form-label" for="description">Description</label><textarea class="form-control" th:field="*{description}" rows="3" maxlength="2000"></textarea></div>
+    </div>
+    <div class="mt-4 d-flex gap-2"><button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i>Save</button>
+        <a class="btn btn-outline-secondary" th:href="@{/software}">Cancel</a></div>
+</form>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

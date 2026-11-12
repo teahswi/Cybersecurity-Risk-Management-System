@@ -1,0 +1,196 @@
+/* =====================================================================
+   CyberShield UI - built on Bootstrap 5.3 colour modes (data-bs-theme="light" | "dark")
+   ===================================================================== */
+:root,
+[data-bs-theme="light"] {
+    --cs-sidebar-bg: #0f2a54;
+    --cs-sidebar-bg-2: #0b1f40;
+    --cs-sidebar-text: #c9d6ee;
+    --cs-sidebar-active: #ffffff;
+    --cs-sidebar-active-bg: rgba(255, 255, 255, .12);
+    --cs-accent: #2f6fed;
+    --cs-body-bg: #f3f6fb;
+    --cs-surface: #ffffff;
+    --cs-surface-2: #f8fafd;
+    --cs-border: #e3e8f0;
+    --cs-muted: #6b7a90;
+    --cs-shadow: 0 1px 2px rgba(16, 38, 77, .06), 0 4px 16px rgba(16, 38, 77, .06);
+    --cs-chart-text: #4a5568;
+    --cs-chart-grid: rgba(74, 85, 104, .12);
+    --bs-body-bg: var(--cs-body-bg);
+}
+
+[data-bs-theme="dark"] {
+    --cs-sidebar-bg: #0a1730;
+    --cs-sidebar-bg-2: #071125;
+    --cs-sidebar-text: #a9b8d4;
+    --cs-sidebar-active: #ffffff;
+    --cs-sidebar-active-bg: rgba(110, 160, 255, .16);
+    --cs-accent: #6ea0ff;
+    --cs-body-bg: #0d1424;
+    --cs-surface: #141d31;
+    --cs-surface-2: #182339;
+    --cs-border: #25324b;
+    --cs-muted: #94a3bd;
+    --cs-shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
+    --cs-chart-text: #c3cee3;
+    --cs-chart-grid: rgba(195, 206, 227, .12);
+    --bs-body-bg: var(--cs-body-bg);
+}
+
+body {
+    background: var(--cs-body-bg);
+    font-family: "Segoe UI", Inter, system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: .925rem;
+}
+
+/* ---------------- layout ---------------- */
+.cs-app { display: flex; min-height: 100vh; }
+.cs-sidebar {
+    width: 250px; flex-shrink: 0; position: sticky; top: 0; height: 100vh; overflow-y: auto;
+    background: linear-gradient(180deg, var(--cs-sidebar-bg), var(--cs-sidebar-bg-2));
+    color: var(--cs-sidebar-text); transition: width .2s ease; z-index: 1030;
+}
+.cs-brand { display: flex; align-items: center; gap: .6rem; padding: 1.1rem 1.2rem; color: #fff; text-decoration: none; }
+.cs-brand:hover { color: #fff; }
+.cs-brand-logo {
+    width: 34px; height: 34px; border-radius: 9px; display: grid; place-items: center; flex-shrink: 0;
+    background: linear-gradient(135deg, #3b82f6, #22d3ee); color: #fff; font-size: 1.15rem;
+}
+.cs-brand-text { font-weight: 700; letter-spacing: .3px; font-size: 1.1rem; white-space: nowrap; }
+.cs-nav-section { font-size: .68rem; text-transform: uppercase; letter-spacing: .08em; opacity: .55;
+    padding: 1rem 1.3rem .35rem; white-space: nowrap; }
+.cs-nav a {
+    display: flex; align-items: center; gap: .75rem; padding: .52rem 1.25rem; margin: .1rem .6rem; border-radius: 8px;
+    color: var(--cs-sidebar-text); text-decoration: none; white-space: nowrap; font-size: .9rem;
+}
+.cs-nav a i { font-size: 1.05rem; width: 1.2rem; text-align: center; }
+.cs-nav a:hover { background: rgba(255, 255, 255, .07); color: #fff; }
+.cs-nav a.active { background: var(--cs-sidebar-active-bg); color: var(--cs-sidebar-active); font-weight: 600; }
+body.cs-collapsed .cs-sidebar { width: 72px; }
+body.cs-collapsed .cs-brand-text, body.cs-collapsed .cs-nav-section,
+body.cs-collapsed .cs-nav a span { display: none; }
+body.cs-collapsed .cs-nav a { justify-content: center; padding: .6rem; }
+
+.cs-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.cs-topbar {
+    position: sticky; top: 0; z-index: 1020; display: flex; align-items: center; gap: .75rem;
+    padding: .65rem 1.5rem; background: var(--cs-surface); border-bottom: 1px solid var(--cs-border);
+}
+.cs-content { padding: 1.5rem; flex: 1; }
+.cs-footer { padding: 1rem 1.5rem; color: var(--cs-muted); font-size: .8rem; border-top: 1px solid var(--cs-border); }
+
+@media (max-width: 991.98px) {
+    .cs-sidebar { position: fixed; left: -260px; transition: left .2s ease; }
+    body.cs-mobile-open .cs-sidebar { left: 0; }
+    body.cs-collapsed .cs-sidebar { width: 250px; }
+    body.cs-collapsed .cs-brand-text, body.cs-collapsed .cs-nav-section, body.cs-collapsed .cs-nav a span { display: inline; }
+}
+
+/* ---------------- search ---------------- */
+.cs-search { position: relative; flex: 1; max-width: 520px; }
+.cs-search .form-control { padding-left: 2.2rem; background: var(--cs-surface-2); border-color: var(--cs-border); }
+.cs-search > i { position: absolute; left: .8rem; top: 50%; transform: translateY(-50%); color: var(--cs-muted); }
+.cs-search-results {
+    position: absolute; top: calc(100% + 6px); left: 0; right: 0; max-height: 420px; overflow-y: auto; display: none;
+    background: var(--cs-surface); border: 1px solid var(--cs-border); border-radius: 10px; box-shadow: var(--cs-shadow);
+}
+.cs-search-results.show { display: block; }
+.cs-search-results a { display: flex; gap: .7rem; align-items: center; padding: .55rem .9rem; color: inherit; text-decoration: none;
+    border-bottom: 1px solid var(--cs-border); }
+.cs-search-results a:last-child { border-bottom: 0; }
+.cs-search-results a:hover, .cs-search-results a.active { background: var(--cs-surface-2); }
+
+/* ---------------- cards & tables ---------------- */
+.card { background: var(--cs-surface); border: 1px solid var(--cs-border); border-radius: 14px; box-shadow: var(--cs-shadow); }
+.card-header { background: transparent; border-bottom: 1px solid var(--cs-border); font-weight: 600; padding: .85rem 1.1rem; }
+.cs-page-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: .75rem; margin-bottom: 1.25rem; }
+.cs-page-header h1 { font-size: 1.45rem; font-weight: 700; margin: 0; }
+.cs-page-header .cs-subtitle { color: var(--cs-muted); margin: .15rem 0 0; }
+.cs-stat { padding: 1.05rem 1.15rem; display: flex; gap: .9rem; align-items: center; text-decoration: none; color: inherit;
+    transition: transform .12s ease, box-shadow .12s ease; height: 100%; }
+a.cs-stat:hover { transform: translateY(-2px); }
+.cs-stat-icon { width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-size: 1.35rem; flex-shrink: 0; }
+.cs-stat-value { font-size: 1.6rem; font-weight: 700; line-height: 1.1; }
+.cs-stat-label { color: var(--cs-muted); font-size: .82rem; }
+.cs-tone-primary { background: rgba(47, 111, 237, .12); color: #2f6fed; }
+.cs-tone-danger { background: rgba(220, 53, 69, .12); color: #dc3545; }
+.cs-tone-warning { background: rgba(253, 126, 20, .14); color: #e8590c; }
+.cs-tone-success { background: rgba(25, 135, 84, .13); color: #198754; }
+.cs-tone-info { background: rgba(13, 202, 240, .14); color: #0aa2c0; }
+.cs-tone-secondary { background: rgba(108, 117, 125, .14); color: #6c757d; }
+
+.table { --bs-table-bg: transparent; margin-bottom: 0; }
+.table > thead th { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--cs-muted);
+    border-bottom-width: 1px; white-space: nowrap; font-weight: 600; }
+.table > tbody > tr:hover > * { background: var(--cs-surface-2); }
+.table a.cs-sort { color: inherit; text-decoration: none; }
+.cs-code { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .85rem; font-weight: 600; }
+.cs-muted { color: var(--cs-muted); }
+.cs-empty { text-align: center; padding: 2.5rem 1rem; color: var(--cs-muted); }
+.cs-empty i { font-size: 2.2rem; display: block; margin-bottom: .5rem; opacity: .6; }
+.cs-dl dt { color: var(--cs-muted); font-weight: 500; font-size: .8rem; text-transform: uppercase; letter-spacing: .03em; }
+.cs-dl dd { margin-bottom: .8rem; }
+.cs-filter-bar { background: var(--cs-surface); border: 1px solid var(--cs-border); border-radius: 12px; padding: .9rem; margin-bottom: 1rem; }
+
+/* ---------------- badges ---------------- */
+.cs-badge { font-weight: 600; letter-spacing: .02em; padding: .38em .62em; border-radius: 6px; background: rgba(108, 117, 125, .16); color: #5c6670; }
+.cs-critical, .cs-overdue, .cs-rejected, .cs-escalated, .cs-inactive { background: rgba(220, 53, 69, .14); color: #c92a3a; }
+.cs-high, .cs-new, .cs-reopened, .cs-data-breach { background: rgba(253, 126, 20, .16); color: #d9480f; }
+.cs-medium, .cs-pending-verification, .cs-pending-review, .cs-submitted, .cs-mitigating, .cs-investigating,
+.cs-maintenance, .cs-treatment-planned { background: rgba(255, 193, 7, .2); color: #a07000; }
+.cs-low, .cs-assigned, .cs-planned, .cs-draft, .cs-contained, .cs-monitoring { background: rgba(13, 202, 240, .16); color: #0b7f99; }
+.cs-open, .cs-in-progress, .cs-in-treatment, .cs-production { background: rgba(47, 111, 237, .14); color: #2457c5; }
+.cs-completed, .cs-mitigated, .cs-resolved, .cs-approved, .cs-verified, .cs-active { background: rgba(25, 135, 84, .15); color: #157347; }
+.cs-closed, .cs-archived, .cs-cancelled, .cs-accepted { background: rgba(108, 117, 125, .18); color: #5c6670; }
+[data-bs-theme="dark"] .cs-badge { filter: brightness(1.35); }
+
+/* ---------------- timeline ---------------- */
+.cs-timeline { list-style: none; margin: 0; padding: 0; position: relative; }
+.cs-timeline::before { content: ""; position: absolute; left: 11px; top: 4px; bottom: 4px; width: 2px; background: var(--cs-border); }
+.cs-timeline li { position: relative; padding: 0 0 1rem 2.1rem; }
+.cs-timeline li::before { content: ""; position: absolute; left: 5px; top: 5px; width: 14px; height: 14px; border-radius: 50%;
+    background: var(--cs-surface); border: 3px solid var(--cs-accent); }
+.cs-timeline .cs-time { font-size: .76rem; color: var(--cs-muted); }
+
+/* ---------------- workflow stepper ---------------- */
+.cs-steps { display: flex; flex-wrap: wrap; gap: .4rem; align-items: center; }
+.cs-step { padding: .35rem .7rem; border-radius: 999px; font-size: .78rem; font-weight: 600; background: var(--cs-surface-2);
+    border: 1px solid var(--cs-border); color: var(--cs-muted); }
+.cs-step.done { background: rgba(25, 135, 84, .12); color: #198754; border-color: transparent; }
+.cs-step.current { background: var(--cs-accent); color: #fff; border-color: transparent; }
+.cs-step-arrow { color: var(--cs-muted); font-size: .8rem; }
+
+/* ---------------- notifications ---------------- */
+.cs-bell { position: relative; }
+.cs-bell .cs-count { position: absolute; top: 0; right: 0; transform: translate(35%, -25%); font-size: .65rem; min-width: 18px; }
+.cs-notif-menu { width: 360px; max-height: 460px; overflow-y: auto; padding: 0; }
+.cs-notif-item { display: flex; gap: .7rem; padding: .7rem .9rem; border-bottom: 1px solid var(--cs-border); text-decoration: none; color: inherit; cursor: pointer; }
+.cs-notif-item.unread { background: rgba(47, 111, 237, .07); }
+.cs-notif-item:hover { background: var(--cs-surface-2); }
+.cs-notif-item i { font-size: 1.15rem; color: var(--cs-accent); }
+.cs-notif-time { font-size: .74rem; color: var(--cs-muted); }
+
+/* ---------------- risk matrix ---------------- */
+.cs-matrix td { width: 44px; height: 40px; text-align: center; font-weight: 700; border: 2px solid var(--cs-surface); border-radius: 6px; }
+.cs-matrix .lvl-low { background: rgba(25, 135, 84, .25); }
+.cs-matrix .lvl-medium { background: rgba(255, 193, 7, .35); }
+.cs-matrix .lvl-high { background: rgba(253, 126, 20, .45); }
+.cs-matrix .lvl-critical { background: rgba(220, 53, 69, .55); color: #fff; }
+
+/* ---------------- login ---------------- */
+.cs-login-wrap { min-height: 100vh; display: grid; grid-template-columns: 1.1fr 1fr; }
+.cs-login-hero { background: radial-gradient(circle at 20% 20%, #1f4fa3 0, #0f2a54 45%, #071125 100%); color: #dbe6ff;
+    padding: 3rem; display: flex; flex-direction: column; justify-content: space-between; }
+.cs-login-hero h2 { color: #fff; font-weight: 700; }
+.cs-login-form { display: flex; align-items: center; justify-content: center; padding: 2rem; background: var(--cs-surface); }
+.cs-login-card { width: 100%; max-width: 400px; }
+.cs-feature { display: flex; gap: .75rem; margin-bottom: 1rem; }
+.cs-feature i { font-size: 1.3rem; color: #7dd3fc; }
+@media (max-width: 991.98px) { .cs-login-wrap { grid-template-columns: 1fr; } .cs-login-hero { display: none; } }
+
+.cs-chart-box { position: relative; height: 260px; }
+.progress { background: var(--cs-surface-2); }
+.dropdown-menu { border-color: var(--cs-border); box-shadow: var(--cs-shadow); }
+.form-label { font-weight: 600; font-size: .85rem; }
+.btn { border-radius: 8px; }

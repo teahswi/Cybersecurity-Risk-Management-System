@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Audit Plans')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('audits')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Audit Plans</h1><p class="cs-subtitle">Internal audits against the demonstration ISO 27001 and NIST CSF control sets (no certification is claimed).</p></div>
+    <a class="btn btn-primary" th:href="@{/audits/new}"><i class="bi bi-plus-lg me-1"></i>New audit plan</a></div>
+<form class="cs-filter-bar row g-2 align-items-end" th:action="@{/audits}" method="get">
+    <div class="col-md-4"><label class="form-label small">Search</label><input class="form-control" name="q" th:value="${q}" placeholder="Code or name"></div>
+    <div class="col-md-3"><label class="form-label small">Status</label><select class="form-select" name="status"><option value="">All</option>
+        <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}" th:selected="${s == status}"></option></select></div>
+    <div class="col-md-3"><label class="form-label small">Framework</label><select class="form-select" name="frameworkId"><option value="">All</option>
+        <option th:each="f : ${frameworks}" th:value="${f.id}" th:text="${f.label}" th:selected="${f.id == frameworkId}"></option></select></div>
+    <div class="col-md-2 d-flex gap-2"><button class="btn btn-primary flex-fill" type="submit"><i class="bi bi-funnel"></i></button>
+        <a class="btn btn-outline-secondary" th:href="@{/audits}"><i class="bi bi-x-lg"></i></a></div>
+</form>
+<div class="card"><div class="table-responsive">
+    <table class="table align-middle" th:unless="${page.empty}">
+        <thead><tr><th><a th:replace="~{fragments/layout :: sortable('planCode', 'Plan')}"></a></th><th>Framework</th><th>Auditor</th><th><a th:replace="~{fragments/layout :: sortable('startDate', 'Start')}"></a></th>
+            <th><a th:replace="~{fragments/layout :: sortable('targetCompletionDate', 'Target')}"></a></th><th><a th:replace="~{fragments/layout :: sortable('status', 'Status')}"></a></th><th></th></tr></thead>
+        <tbody><tr th:each="p : ${page.content}">
+            <td><a class="cs-code" th:href="@{/audits/{id}(id=${p.id})}" th:text="${p.planCode}">A</a><div class="small fw-semibold" th:text="${p.name}">n</div></td>
+            <td class="small" th:text="${p.frameworkName}">f</td><td class="small" th:text="${p.auditorName}">a</td>
+            <td class="small" th:text="${p.startDate != null ? #temporals.format(p.startDate, 'dd MMM yyyy') : '-'}">s</td><td class="small" th:text="${p.targetCompletionDate != null ? #temporals.format(p.targetCompletionDate, 'dd MMM yyyy') : '-'}">t</td>
+            <td><span th:replace="~{fragments/layout :: badge(${p.status})}"></span></td>
+            <td class="text-end"><a class="btn btn-sm btn-outline-primary" th:href="@{/audits/{id}(id=${p.id})}">Open</a></td>
+        </tr></tbody>
+    </table>
+    <div class="cs-empty" th:if="${page.empty}"><i class="bi bi-clipboard"></i>No audit plans found.</div>
+</div><div th:replace="~{fragments/layout :: pagination(${page})}"></div></div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

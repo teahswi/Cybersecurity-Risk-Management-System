@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Notifications')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('notifications')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Notifications</h1><p class="cs-subtitle">Notifications are stored per user in MySQL. Only your own are shown.</p></div>
+    <form th:action="@{/notifications/read-all}" method="post"><button class="btn btn-outline-primary" type="submit"><i class="bi bi-check2-all me-1"></i>Mark all as read</button></form></div>
+<ul class="nav nav-pills mb-3">
+    <li class="nav-item"><a class="nav-link" th:classappend="${!unread} ? 'active'" th:href="@{/notifications}">All</a></li>
+    <li class="nav-item"><a class="nav-link" th:classappend="${unread} ? 'active'" th:href="@{/notifications(unread=true)}">Unread</a></li></ul>
+<div class="card">
+    <ul class="list-group list-group-flush" th:unless="${page.empty}">
+        <li class="list-group-item d-flex gap-3 align-items-start" th:each="n : ${page.content}" th:classappend="${!n.read} ? 'bg-primary-subtle'">
+            <i class="bi fs-4 text-primary" th:classappend="${n.icon}"></i>
+            <div class="flex-grow-1"><div class="fw-semibold" th:text="${n.title}">t</div><div class="small" th:text="${n.message}">m</div>
+                <div class="small cs-muted" th:text="|${#temporals.format(n.createdAt, 'dd MMM yyyy, HH:mm')} - ${n.categoryLabel}|">t</div></div>
+            <div class="d-flex gap-1">
+                <form th:action="@{/notifications/{id}/open(id=${n.id})}" method="post"><button class="btn btn-sm btn-primary" type="submit">Open</button></form>
+                <form th:unless="${n.read}" th:action="@{/notifications/{id}/read(id=${n.id})}" method="post"><button class="btn btn-sm btn-outline-secondary" type="submit" title="Mark as read"><i class="bi bi-check2"></i></button></form>
+            </div>
+        </li>
+    </ul>
+    <div class="cs-empty" th:if="${page.empty}"><i class="bi bi-bell-slash"></i>No notifications.</div>
+    <div th:replace="~{fragments/layout :: pagination(${page})}"></div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

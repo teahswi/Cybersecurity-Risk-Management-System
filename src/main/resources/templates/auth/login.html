@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Sign in')}"></head>
+<body>
+<div class="cs-login-wrap">
+    <section class="cs-login-hero">
+        <div class="d-flex align-items-center gap-2">
+            <span class="cs-brand-logo"><i class="bi bi-shield-lock-fill"></i></span>
+            <span class="fs-4 fw-bold text-white">CyberShield</span>
+        </div>
+        <div>
+            <h2 class="mb-3">One place for your security operations</h2>
+            <p class="mb-4 opacity-75">Asset inventory, vulnerability remediation, incidents, audits and risk -
+                backed by a fully normalised MySQL database.</p>
+            <div class="cs-feature"><i class="bi bi-hdd-network"></i><div><strong class="text-white">Asset &amp; software inventory</strong><br><span class="small opacity-75">Know every server, endpoint and installed version.</span></div></div>
+            <div class="cs-feature"><i class="bi bi-tools"></i><div><strong class="text-white">Verified remediation workflow</strong><br><span class="small opacity-75">Assignment, evidence, review and full history.</span></div></div>
+            <div class="cs-feature"><i class="bi bi-clipboard-check"></i><div><strong class="text-white">Audit &amp; compliance</strong><br><span class="small opacity-75">ISO 27001 and NIST CSF demonstration controls.</span></div></div>
+        </div>
+        <div class="small opacity-50">Internal application - accounts are created by a Security Manager.</div>
+    </section>
+    <section class="cs-login-form">
+        <div class="cs-login-card">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 fw-bold mb-1">Sign in</h1>
+                    <p class="cs-muted mb-0">Use your CyberShield account</p>
+                </div>
+                <button class="btn btn-sm btn-outline-secondary" type="button" data-theme-toggle aria-label="Toggle dark mode">
+                    <i data-theme-icon class="bi bi-moon-stars"></i></button>
+            </div>
+            <div th:if="${param.error}" class="alert alert-danger py-2"><i class="bi bi-x-circle me-2"></i>Invalid username or password.</div>
+            <div th:if="${param.disabled}" class="alert alert-warning py-2"><i class="bi bi-lock me-2"></i>This account is inactive. Contact your Security Manager.</div>
+            <div th:if="${param.logout}" class="alert alert-success py-2"><i class="bi bi-check-circle me-2"></i>You have been logged out.</div>
+            <form th:action="@{/login}" method="post" novalidate>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-person"></i></span>
+                        <input type="text" id="username" name="username" class="form-control" required autofocus
+                               autocomplete="username" maxlength="50">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="password" class="form-label">Password</label>
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-key"></i></span>
+                        <input type="password" id="password" name="password" class="form-control" required
+                               autocomplete="current-password" maxlength="72">
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2"><i class="bi bi-box-arrow-in-right me-2"></i>Sign in</button>
+            </form>
+            <p class="small cs-muted mt-4 mb-0">Demo accounts (development only) are listed in README.md.</p>
+        </div>
+    </section>
+</div>
+<script th:src="@{/vendor/bootstrap/js/bootstrap.bundle.min.js}"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

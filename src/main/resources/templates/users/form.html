@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head(${userId == null} ? 'Create user' : 'Edit user')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('users')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1 th:text="${userId == null} ? 'Create user' : 'Edit user'">User</h1>
+    <p class="cs-subtitle">Each user has exactly one role. Passwords are stored as BCrypt hashes.</p></div></div>
+<form class="card card-body" th:action="${userId == null} ? @{/users} : @{/users/{id}(id=${userId})}" th:object="${form}" method="post" novalidate autocomplete="off">
+    <div class="row g-3">
+        <div class="col-md-6"><label class="form-label" for="fullName">Full name *</label><input class="form-control" th:field="*{fullName}" th:errorclass="is-invalid" required maxlength="150">
+            <div class="invalid-feedback" th:errors="*{fullName}"></div></div>
+        <div class="col-md-3"><label class="form-label" for="username">Username *</label>
+            <input class="form-control" th:field="*{username}" th:errorclass="is-invalid" required maxlength="50" th:readonly="${userId != null}">
+            <div class="invalid-feedback" th:errors="*{username}"></div></div>
+        <div class="col-md-3"><label class="form-label" for="email">Email *</label><input class="form-control" type="email" th:field="*{email}" th:errorclass="is-invalid" required maxlength="150">
+            <div class="invalid-feedback" th:errors="*{email}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="role">Role *</label>
+            <select class="form-select" th:field="*{role}" th:errorclass="is-invalid" required th:disabled="${userId != null and userId == currentUser.id}">
+                <option value="">Choose...</option><option th:each="r : ${roles}" th:value="${r}" th:text="${r.label}"></option></select>
+            <input th:if="${userId != null and userId == currentUser.id}" type="hidden" th:field="*{role}">
+            <div class="small cs-muted" th:if="${userId != null and userId == currentUser.id}">You cannot change your own role.</div>
+            <div class="invalid-feedback" th:errors="*{role}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="departmentId">Department</label><select class="form-select" th:field="*{departmentId}">
+            <option value="">None</option><option th:each="d : ${departments}" th:value="${d.id}" th:text="${d.label}"></option></select></div>
+        <div class="col-md-4"><label class="form-label" for="status">Account status *</label>
+            <select class="form-select" th:field="*{status}" th:disabled="${userId != null and userId == currentUser.id}">
+                <option th:each="s : ${statuses}" th:value="${s}" th:text="${s.label}"></option></select>
+            <input th:if="${userId != null and userId == currentUser.id}" type="hidden" th:field="*{status}"></div>
+        <div class="col-md-4"><label class="form-label" for="jobTitle">Job title</label><input class="form-control" th:field="*{jobTitle}" maxlength="100"></div>
+        <div class="col-md-4"><label class="form-label" for="phone">Phone</label><input class="form-control" th:field="*{phone}" th:errorclass="is-invalid" maxlength="30">
+            <div class="invalid-feedback" th:errors="*{phone}"></div></div>
+        <div class="col-md-4"><label class="form-label" for="password" th:text="${userId == null} ? 'Initial password *' : 'New password (optional)'">Password</label>
+            <input class="form-control" type="password" th:field="*{password}" th:errorclass="is-invalid" maxlength="72" autocomplete="new-password" th:required="${userId == null}">
+            <div class="small cs-muted">8+ characters with upper and lower case, a digit and a symbol.</div>
+            <div class="invalid-feedback" th:errors="*{password}"></div></div>
+    </div>
+    <div class="mt-4 d-flex gap-2"><button class="btn btn-primary" type="submit"><i class="bi bi-save me-1"></i>Save user</button>
+        <a class="btn btn-outline-secondary" th:href="@{/users}">Cancel</a></div>
+</form>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>

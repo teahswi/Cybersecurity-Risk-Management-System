@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" data-bs-theme="light">
+<head th:replace="~{fragments/layout :: head('Compliance Frameworks')}"></head>
+<body>
+<div class="cs-app">
+    <aside th:replace="~{fragments/layout :: sidebar('frameworks')}"></aside>
+    <div class="cs-main">
+        <header th:replace="~{fragments/layout :: navbar}"></header>
+        <main class="cs-content">
+            <div th:replace="~{fragments/layout :: flash}"></div>
+
+<div class="cs-page-header"><div><h1>Compliance Frameworks</h1><p class="cs-subtitle">Demonstration subsets only. CyberShield does not claim official certification.</p></div>
+    <a class="btn btn-outline-primary" th:href="@{/audits/controls}"><i class="bi bi-list-columns me-1"></i>View controls</a></div>
+<div class="row g-3">
+    <div class="col-md-6" th:each="f : ${frameworks}"><div class="card h-100"><div class="card-body">
+        <div class="d-flex justify-content-between"><h2 class="h5 fw-bold" th:text="${f.name}">n</h2><span class="badge bg-primary-subtle text-primary-emphasis" th:text="${f.versionLabel}">v</span></div>
+        <p class="cs-code small" th:text="${f.code}">c</p><p th:text="${f.description}">d</p>
+        <a class="btn btn-sm btn-outline-primary" th:href="@{/audits/controls(frameworkId=${f.id})}" th:text="|${f.controls} controls|">controls</a>
+    </div></div></div>
+</div>
+
+        </main>
+        <footer th:replace="~{fragments/layout :: footer}"></footer>
+    </div>
+</div>
+<th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+</body>
+</html>
